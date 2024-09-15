@@ -13,8 +13,8 @@
     creates: /etc/ssl/certs/dhparam.pem
 
 - name: Whitelisted Domains
-  copy:
-    src: whitelisted_domains
+  template:
+    src: whitelisted_domains.j2
     dest: /etc/postfix/whitelisted_domains
     owner: root
     group: root
@@ -23,8 +23,8 @@
   notify: rebuild whitelisted domains
 
 - name: Postfox main.cf
-  copy:
-    src: main.cf
+  template:
+    src: main.cf.j2
     dest: /etc/postfix/main.cf
     owner: root
     group: root
@@ -33,8 +33,8 @@
   notify: restart postfix
 
 - name: Postfox master.cf
-  copy:
-    src: master.cf
+  template:
+    src: master.cf.j2
     dest: /etc/postfix/master.cf
     owner: root
     group: root

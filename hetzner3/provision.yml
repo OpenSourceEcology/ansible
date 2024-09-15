@@ -21,12 +21,12 @@
 
   roles:
 #    - dev-sec.ssh-hardening
-#    - mikegleasonjr.firewall
+    - mikegleasonjr.firewall
     - maltfield.postfix
 #    - maltfield.wazuh
 #    - maltfield.unattended-upgrades
 #    - maltfield.kernel
-#    - maltfield.dns
+    - maltfield.dns
 #    - maltfield.locale
 #    - maltfield.nginx
 #    - maltfield.varnish
@@ -80,16 +80,14 @@
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
-#      220 allow mail to postfix:
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 25 -j ACCEPT
       810 allow root:
         - -A OUTPUT -m owner --uid-owner root -j ACCEPT
       820 allow apt:
         - -A OUTPUT -m owner --uid-owner _apt -j ACCEPT
       830 allow maltfield:
         - -A OUTPUT -m owner --uid-owner maltfield -j ACCEPT
-#      840 allow postfix:
-#        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
+      840 allow postfix:
+        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
       841 allow stubby:
         - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
       842 allow tor:
@@ -125,16 +123,14 @@
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
 #        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
-#      220 allow mail to postfix:
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 25 -j ACCEPT
       810 allow root:
         - -A OUTPUT -m owner --uid-owner root -j ACCEPT
       820 allow apt:
         - -A OUTPUT -m owner --uid-owner _apt -j ACCEPT
       830 allow maltfield:
         - -A OUTPUT -m owner --uid-owner maltfield -j ACCEPT
-#      840 allow postfix:
-#        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
+      840 allow postfix:
+        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
       841 allow stubby:
         - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
       842 allow tor:
