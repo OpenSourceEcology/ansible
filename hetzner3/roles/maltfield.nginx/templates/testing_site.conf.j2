@@ -1,0 +1,70 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    testing_site.conf
+# Version: 0.2
+# Purpose: Use this to test an apache backend. Ie: use it when the main site is
+#          pointed at SITE_DOWN during a production change.
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-23
+# Updated: 2024-08-07
+################################################################################
+
+#server {
+#	# redirect the naked domain to 'www'
+#   include conf.d/secure.include;
+#
+#	# CHANGE ME. use the relevant https cert for the site you're testing
+#   include conf.d/ssl.opensourceecology.org.include;
+#
+#   listen {{ ansible_default_ipv4.address }}:4444;
+#   listen [{{ ansible_default_ipv6.address }}]:4444;
+#
+#	# CHANGE ME. change server_name for whatever site you're testing
+#	server_name fef.opensourceecology.org.org;
+#	return 301 https://fef.opensourceecology.org:4444;
+#}
+
+server {
+
+   include conf.d/secure.include;
+
+	# CHANGE ME. use the relevant https cert for the site you're testing
+   include conf.d/https.opensourceecology.org.include;
+
+   listen {{ ansible_default_ipv4.address }}:4444;
+   listen [{{ ansible_default_ipv6.address }}]:4444;
+
+	# CHANGE ME. change server_name for whatever site you're testing
+   server_name fef.opensourceecology.org;
+
+	#############
+	# SITE_DOWN #
+	#############
+	# uncomment this block && restart nginx prior to apache work to display the
+	# "SITE DOWN" webpage for our clients
+
+	#root /var/www/html/SITE_DOWN/htdocs/;
+   #index index.html index.htm;
+
+	# force all requests to load exactly this page
+	#location / {
+	#	try_files $uri /index.html;
+	#}
+
+	###################
+	# SEND TO VARNISH #
+	###################
+
+   location / {
+      #proxy_pass http://127.0.0.1:6081;
+      proxy_pass http://127.0.0.1:8000;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      #proxy_set_header X-Forwarded-Proto https;
+      #proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header Host $host;
+   }
+
+}
+

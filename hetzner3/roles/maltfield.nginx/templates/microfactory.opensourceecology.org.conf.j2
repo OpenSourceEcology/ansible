@@ -1,0 +1,55 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    microfactory.opensourceecology.org.conf
+# Version: 0.2
+# Purpose: Internet-listening web server for truncating https, basic DOS
+#          protection, and passing to varnish cache (varnish then passes to
+#          apache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-08-20
+# Updated: 2024-09-14
+################################################################################
+
+server {
+
+	access_log /var/log/nginx/microfactory.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/microfactory.opensourceecology.org/error.log;
+
+   include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+
+   server_name microfactory.opensourceecology.org;
+
+	#############
+	# SITE_DOWN #
+	#############
+	# uncomment this block && restart nginx prior to apache work to display the
+	# "SITE DOWN" webpage for our clients
+
+#	root /var/www/html/SITE_DOWN/htdocs/;
+#   index index.html index.htm;
+#
+#	# force all requests to load exactly this page
+#	location / {
+#		try_files $uri /index.html;
+#	}
+
+	###################
+	# SEND TO VARNISH #
+	###################
+
+   location / {
+      proxy_pass http://127.0.0.1:6081;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header Host $host;
+   }
+
+}
+

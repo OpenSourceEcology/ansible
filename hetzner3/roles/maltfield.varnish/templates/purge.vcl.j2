@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    purge.vcl
+# Version: 0.1
+# Purpose: Cache Purge Library for Varnish
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-11
+# Updated: 2024-09-11
+################################################################################
+
+# TODO: uncomment these once you actually use them. Because, if unused, varnish
+#       will refuse to start.
+
+# Regex purging
+# Treat the request URL as a regular expression.
+sub purge_regex {
+	ban("obj.http.X-VC-Req-URL ~ " + req.url + " && obj.http.X-VC-Req-Host == " + req.http.host);
+}
+
+# Exact purging
+# Use the exact request URL (including any query params)
+sub purge_exact {
+	ban("obj.http.X-VC-Req-URL == " + req.url + " && obj.http.X-VC-Req-Host == " + req.http.host);
+}
+
+# Page purging (default)
+# Use the exact request URL, but ignore any query params
+sub purge_page {
+	set req.url = regsub(req.url, "\?.*$", "");
+	ban("obj.http.X-VC-Req-URL-Base == " + req.url + " && obj.http.X-VC-Req-Host == " + req.http.host);
+}

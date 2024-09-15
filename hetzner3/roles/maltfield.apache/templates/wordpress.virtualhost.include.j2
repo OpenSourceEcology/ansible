@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    wordpress.virtualhost.include
+# Version: 0.1
+# Purpose: File includes some common config options that are intended to be
+#          Include()d into other wordpress vhost files' <VirtualHost> blocks
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+	Include 'conf-available/security.virtualhost.include'
+
+	# disable some pesky ModSecurity rules that cause false-positives, as needed
+	# (found by logs in: /var/log/apache2/modsec_audit.log)
+	<LocationMatch "/(wp-admin|ose-hidden-login)/">
+		<IfModule security2_module>
+			SecRuleRemoveById 200003 200004 950001 950109 950120 950901 950907 950911 958008 958030 958039 958051 958052 958056 958057 958407 958413 959070 959071 959072 959073 960015 960017 960020 960024 960335 960904 960915 970901 973300 973301 973302 973303 973304 973305 973306 973307 973316 973317 973324 973327 973329 973330 973331 973332 973333 973334 973335 973336 973337 973338 973344 973347 981172 981173 981231 981240 981242 981243 981244 981245 981246 981248 981249 981250 981253 981255 981256 981257 981317 981318 981319
+		</IfModule>
+	</LocationMatch>
+
+	# remove a few pesky rules from the whole site
+	<IfModule security2_module>
+		SecRuleRemoveById 200004 920350 921110 921130 930100 930110 930120 932100 932160 932150 932105 932110 932115 932130 932140 933100 933120 933150 933160 933180 934100 941100 941120 941110 941170 941230 941130 941140 941160 941180 941250 941300 941310 941350 942100 942190 942230 942240 942350 949110 951120 951220 951230 951240 953110 981172 981173 981319
+	</IfModule>

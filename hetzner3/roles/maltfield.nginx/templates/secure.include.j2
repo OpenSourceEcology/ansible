@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    secure.include
+# Version: 0.2
+# Purpose: Basic security settings that couldn't be put in the main nginx.conf.
+#          This should be included in the server{} blocks nginx vhosts.
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-23
+# Updated: 2024-08-07
+################################################################################
+
+	# whitelist requests to disable TRACE & DELETE
+	if ($request_method !~ ^(GET|HEAD|POST)$ ) {
+		# note: 444 is a meta code; it doesn't return anything, actually
+ 		#       it just logs, drops, & closes the connection (useful
+		#       against malware)
+		return 444;
+	}
+
+	## block some bot's useragents (may need to remove some, if impacts SEO)
+	# 2020-05-03: I'm removing this from my config for my migration to hetzner
+	#             Logic: If a bot is playing bad, they'll be blocked by DOS rate
+	#             limits, anyway. Otherwise, let 'em scrape.
+	#if ($blockedagent) {
+	#	return 403;
+	#}
+
+	# prevent access to any dirs/files starting with a dot (.)
+	location ~ /\.(?!well\-known) { access_log off; log_not_found off; deny all; }
+
+	# prevent access to any config files
+	location ~ config\. { access_log off; log_not_found off; deny all; }

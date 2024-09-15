@@ -1,0 +1,165 @@
+---
+- hosts: hetzner3
+  become: yes
+
+  tasks:
+
+  - name: install basic essential packages
+    apt:
+      update_cache: yes
+      pkg:
+      - screen
+      - git
+      - subversion
+      - vim
+      - tcpdump
+      - dnsutils
+      - rclone
+      - mailutils
+      - mutt
+      - ncdu
+
+  roles:
+#    - dev-sec.ssh-hardening
+#    - mikegleasonjr.firewall
+    - maltfield.postfix
+#    - maltfield.wazuh
+#    - maltfield.unattended-upgrades
+#    - maltfield.kernel
+#    - maltfield.dns
+#    - maltfield.locale
+#    - maltfield.nginx
+#    - maltfield.varnish
+#    - maltfield.php
+#    - maltfield.mariadb
+#    - maltfield.apache
+#    - maltfield.munin
+#    - maltfield.awstats
+#    - maltfield.certbot
+#    - maltfield.backups
+#    - maltfield.cron
+#    - maltfield.logrotate
+
+  vars:
+
+    config_system_locale: 'en_DK.UTF-8'
+    config_system_language: 'en_US.UTF-8'
+
+    ssh_server_ports: ['32415']
+    ssh_allow_groups: 'sshaccess'
+    ssh_allow_tcp_forwarding: 'yes'
+    ssh_listen_to: ["{{ ansible_default_ipv4.address }}"]
+    ssh_ciphers:
+      - chacha20-poly1305@openssh.com
+      - aes256-gcm@openssh.com
+      - aes256-ctr
+
+    firewall_v4_configure: true
+    firewall_v6_configure: true
+
+    firewall_v4_default_rules:
+      001 default policies:
+        - -P INPUT DROP
+        - -P OUTPUT DROP
+        - -P FORWARD DROP
+
+      002 allow loopback:
+        - -A INPUT -i lo -j ACCEPT
+        - -A INPUT -s 127.0.0.1/8 -d 127.0.0.1/8 -j DROP
+        - -A OUTPUT -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
+      003 allow ping replies:
+        - -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+        - -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+      100 allow established related:
+        - -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+        - -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+      200 allow ssh:
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 32415 -j ACCEPT
+#      210 allow web server traffic:
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
+#      220 allow mail to postfix:
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 25 -j ACCEPT
+      810 allow root:
+        - -A OUTPUT -m owner --uid-owner root -j ACCEPT
+      820 allow apt:
+        - -A OUTPUT -m owner --uid-owner _apt -j ACCEPT
+      830 allow maltfield:
+        - -A OUTPUT -m owner --uid-owner maltfield -j ACCEPT
+#      840 allow postfix:
+#        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
+      841 allow stubby:
+        - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
+      842 allow tor:
+        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
+#      843 allow mon:
+#        - -A OUTPUT -m owner --uid-owner mon -j ACCEPT
+      990 log before drop:
+        - -A OUTPUT -m limit --limit 5/min -j LOG --log-prefix iptables --log-level 7
+      999 drop everything:
+        - -A INPUT -j DROP
+        - -A OUTPUT -j DROP
+        - -P INPUT DROP
+        - -P OUTPUT DROP
+
+    firewall_v6_default_rules:
+      001 default policies:
+        - -P INPUT DROP
+        - -P OUTPUT DROP
+        - -P FORWARD DROP
+
+      002 allow loopback:
+        - -A INPUT -i lo -j ACCEPT
+        - -A OUTPUT -s ::1/128 -d ::1/128 -j ACCEPT
+        - -A INPUT -s ::1/128 -d ::1/128 -j DROP
+      003 allow ping replies:
+        - -A INPUT -p icmpv6 -j ACCEPT
+        - -A OUTPUT -p icmpv6 -j ACCEPT
+      100 allow established related:
+        - -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+        - -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+#      210 allow web server traffic:
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
+#      220 allow mail to postfix:
+#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 25 -j ACCEPT
+      810 allow root:
+        - -A OUTPUT -m owner --uid-owner root -j ACCEPT
+      820 allow apt:
+        - -A OUTPUT -m owner --uid-owner _apt -j ACCEPT
+      830 allow maltfield:
+        - -A OUTPUT -m owner --uid-owner maltfield -j ACCEPT
+#      840 allow postfix:
+#        - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
+      841 allow stubby:
+        - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
+      842 allow tor:
+        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
+#      843 allow mon:
+#        - -A OUTPUT -m owner --uid-owner mon -j ACCEPT
+      990 log before drop:
+        - -A OUTPUT -m limit --limit 5/min -j LOG --log-prefix iptables --log-level 7
+      999 drop everything:
+        - -A INPUT -j DROP
+        - -A OUTPUT -j DROP
+        - -P INPUT DROP
+        - -P OUTPUT DROP
+
+    virtual_hosts:
+      - forum.opensourceecology.org
+#      - store.opensourceecology.org
+#      - microfactory.opensourceecology.org
+#      - fef.opensourceecology.org
+#      - oswh.opensourceecology.org
+#      - seedhome.openbuildinginstitute.org
+#      - www.openbuildinginstitute.org
+#      - www.opensourceecology.org
+#      - phplist.opensourceecology.org
+#      - wiki.opensourceecology.org
+
+#    default_vhost: 'www.opensourceecology.org'
+    default_vhost: 'forum.opensourceecology.org'

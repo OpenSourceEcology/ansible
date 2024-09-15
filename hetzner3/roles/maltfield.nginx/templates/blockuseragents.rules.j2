@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    blockuseragents.rules
+# Version: 0.1
+# Purpose: Match user agents that we want to block in nginx
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+map $http_user_agent $blockedagent {
+        default         0;
+        ~*malicious     1;
+        #~*bot           1;
+        ~*backdoor      1;
+        ~*crawler       1;
+        ~*bandit        1;
+}

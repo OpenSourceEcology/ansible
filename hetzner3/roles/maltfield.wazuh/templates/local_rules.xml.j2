@@ -1,0 +1,130 @@
+<!--
+  {{ ansible_managed }}
+-->
+<!-- @(#) $Id: ./etc/rules/local_rules.xml, 2011/09/08 dcid Exp $
+
+  -  Example of local rules for OSSEC.
+  -
+  -  Copyright (C) 2009 Trend Micro Inc.
+  -  All rights reserved.
+  -
+  -  This program is a free software; you can redistribute it
+  -  and/or modify it under the terms of the GNU General Public
+  -  License (version 2) as published by the FSF - Free Software
+  -  Foundation.
+  -
+  -  License details: http://www.ossec.net/en/licensing.html
+  -->
+
+
+<!-- Modify it at your will. -->
+
+<group name="local,syslog,sshd,">
+
+  <!-- Note that rule id 5711 is defined at the ssh_rules file
+    -  as a ssh failed login. This is just an example
+    -  since ip 1.1.1.1 shouldn't be used anywhere.
+    -  Level 0 means ignore.
+    -->
+  <rule id="100001" level="0">
+    <if_sid>5711</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>Example of rule that will ignore sshd </description>
+    <description>failed logins from IP 1.1.1.1.</description>
+  </rule>
+  
+  
+  <!-- This example will ignore ssh failed logins for the user name XYZABC.
+    -->
+  <!--  
+  <rule id="100020" level="0">
+    <if_sid>5711</if_sid>
+    <user>XYZABC</user>
+    <description>Example of rule that will ignore sshd </description>
+    <description>failed logins for user XYZABC.</description>
+  </rule>
+  -->
+
+  <!-- CUSTOM rules maltfield  --!>
+
+  <rule id="554" level="10" overwrite="yes">
+   <category>ossec</category>
+   <decoded_as>syscheck_new_entry</decoded_as>
+   <description>File added to the system.</description>
+   <group>syscheck,</group>
+  </rule>
+
+  <!-- Ignore some overly-chatty alerts; let's limit ossec email alerts to high-risk/not-your-everyday-attack alerts -->
+  <rule id="100040" level="2">
+    <if_sid>1002</if_sid>
+    <match>IN=eth0</match>
+    <description>ignore iptables rules for people trying to get in</description>
+  </rule>
+  <rule id="100041" level="2">
+    <if_sid>1002</if_sid>
+    <match>OUT=lo</match>
+    <description>ignore iptables rules for local processes trying to get out on lo</description>
+  </rule>
+  <rule id="100050" level="2">
+    <if_sid>31123</if_sid>
+    <description>ignore 503 errors as they're high in volume</description>
+  </rule>
+  <rule id="100051" level="2">
+    <if_sid>31151</if_sid>
+    <description>ignore 'Multiple web server 400 error codes from same source ip.' as they're high in number</description>
+  </rule>
+  <rule id="100052" level="2">
+    <if_sid>31122</if_sid>
+    <description>ignore 500 Internal Server Errors as they're high in number</description>
+  </rule>
+  <rule id="100053" level="2">
+    <if_sid>30411</if_sid>
+    <description>ignore 'ModSecurity rejected a query' as they're high in number</description>
+  </rule>
+  <rule id="100054" level="2">
+    <if_sid>31533</if_sid>
+    <description>ignore 'High amount of POST requests in a small period of time (likely bot)' as they're high in number</description>
+  </rule>
+  <rule id="100055" level="2">
+    <if_sid>1003</if_sid>
+    <description>ignore 'Non standard syslog message (size too large)' as they're high in number</description>
+  </rule>
+  <rule id="100056" level="2">
+    <if_sid>1002</if_sid>
+    <match>Document labelled UTF-16 but has UTF-8 content</match>
+    <description>ignore document unicode encoding issues as they're high in number</description>
+  </rule>
+  <rule id="100057" level="2">
+    <if_sid>1002</if_sid>
+    <hostname>opensourceecology</hostname>
+    <program_name>connect.sh</program_name>
+    <options>no_email_alert</options>
+    <description>2024-02-29: Ignore OpenVPN cert errors that spam us every 5 minutes and crash the server</description>
+  </rule>
+
+  <!-- Mediawiki Special:UserLogin brute force -->
+  <rule id="100100" level="3">
+    <if_sid>31530</if_sid>
+    <url>Special:UserLogin</url>
+    <regex>POST</regex>
+    <description>Mediawiki login attempt.</description>
+  </rule>
+
+  <!-- If we see frequent mediawiki login POST's, it is likely a bot. -->
+  <rule id="100101" level="8" frequency="6" timeframe="30">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_source_ip />
+    <description>Mediawiki brute force attempt.</description>
+  </rule>
+
+  <!--
+  <rule id="100030" level="0">
+    <if_sid>12345, 23456, xyz, abc</if_sid>
+    <description>List of rules to be ignored.</description>
+  </rule>
+  -->
+   
+</group> <!-- SYSLOG,LOCAL -->
+
+
+<!-- EOF -->

@@ -1,0 +1,16 @@
+---
+- name: install mariadb-server
+  apt:
+    update_cache: yes
+    pkg:
+      - mariadb-server
+
+- name: main mariadb-server config file
+  template:
+    src: 50-server.cnf.j2
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart mariadb

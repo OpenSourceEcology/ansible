@@ -1,0 +1,8 @@
+- name: restart munin
+  service: name=munin.service state=restarted
+  become: yes
+  notify: restart munin-node
+
+- name: restart munin-node
+  service: name=munin-node.service state=restarted
+  become: yes

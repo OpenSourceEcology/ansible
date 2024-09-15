@@ -1,0 +1,55 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    munin.opensourceecology.org.conf
+# Version: 0.2
+# Purpose: Internet-listening web server for truncating https, basic DOS
+#          protection, and passing to varnish cache (varnish then passes to
+#          apache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-03-02
+# Updated: 2024-09-14
+################################################################################
+
+server {
+
+	# 443 is just for Let's Encrypt
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+
+	access_log /var/log/nginx/munin.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/munin.opensourceecology.org/error.log;
+
+	include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+   server_name munin.opensourceecology.org;
+
+	root /var/www/html/certbot/htdocs;
+	disable_symlinks off;
+
+}
+
+server {
+
+	# 4443 is where we put our private sites
+   listen {{ ansible_default_ipv4.address }}:4443;
+   listen [{{ ansible_default_ipv6.address }}]:4443;
+
+	access_log /var/log/nginx/munin.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/munin.opensourceecology.org/error.log;
+
+	include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+   server_name munin.opensourceecology.org;
+
+	root /var/cache/munin/www;
+	disable_symlinks off;
+	autoindex on;
+	index index.html index.htm;
+
+	auth_basic "auth required";
+	auth_basic_user_file /var/www/html/.htpasswd;
+
+}

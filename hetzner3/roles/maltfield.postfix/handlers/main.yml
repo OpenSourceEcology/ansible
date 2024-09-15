@@ -1,0 +1,7 @@
+- name: restart postfix
+  service: name=postfix state=restarted
+  become: yes
+
+- name: rebuild whitelisted domains
+  command: postmap /etc/postfix/whitelisted_domains
+  become: yes

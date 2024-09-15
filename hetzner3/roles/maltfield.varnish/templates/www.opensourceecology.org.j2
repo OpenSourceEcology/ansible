@@ -1,0 +1,461 @@
+################################################################################
+# File:    www.opensourceecology.org.vcl
+# Version: 0.3
+# Purpose: Config file for obi wordpress site. Note: This file was originally
+#          created by copying the recommended config from the "vcaching"
+#          wordpress plugin 
+#            * https://plugins.svn.wordpress.org/vcaching/trunk/varnish-conf/v4/
+#          See also:
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Razvan Stanga 
+# CoAuth:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-01-03
+# Updated: 2024-09-13
+################################################################################
+
+vcl 4.0;
+
+##########################
+# VHOST-SPECIFIC BACKEND #
+##########################
+
+backend www_opensourceecology_org {
+	.host = "127.0.0.1";
+	.port = "8000";
+}
+
+#####################################################################
+# STUFF MOSTLY COPIED FROM vcaching WORDPRESS PLUGIN                #
+# https://plugins.svn.wordpress.org/vcaching/trunk/varnish-conf/v4/ #
+#####################################################################
+
+sub vcl_recv {
+
+	if ( req.http.host ~ "^(www|blog)\.opensourceecology\.org$" ){
+
+		# define which backend (apache) to use
+		set req.backend_hint = www_opensourceecology_org;
+
+		# Tell PageSpeed not to make browser-specific optimizations
+		set req.http.PS-CapabilityList = "fully general optimizations only";
+
+		####################################
+		# from vcaching's lib/xforward.vcl #
+		####################################
+
+		# This should generally be loaded first to make sure that the headers
+		# get set appropriately for all requests.  Note that when using this
+		# you MUST NOT fall through to the VCL default handler for vcl_recv
+		# since that will run the code again, resulting in the client.ip
+		# being added twice.
+
+		if (req.http.X-Forwarded-For) {
+			set req.http.X-Forwarded-For =
+			req.http.X-Forwarded-For + ", " + client.ip;
+		} else {
+			set req.http.X-Forwarded-For = client.ip;
+		}
+
+		#################################
+		# from vcaching's lib/purge.vcl #
+		#################################
+
+		# The purge behavior can be controlled with the X-VC-Purge-Method header.
+		#
+		# Setting the X-VC-Purge-Method header to contain "regex" or "exact" will use
+		# those respective behaviors.  Any other value for the X-Purge header will
+		# use the default ("page") behavior.
+		#
+		# The X-VC-Purge-Method header is not case-sensitive.
+		#
+		# If no X-VC-Purge-Method header is set, the request url is inspected to attempt
+		# a best guess as to what purge behavior is expected.  This should work for
+		# most cases, although if you want to guarantee some behavior you should
+		# always set the X-VC-Purge-Method header.
+
+		# ansible sets-up a random purge key for each site on first provision
+		# we just include it rather than define it here
+		# * https://stackoverflow.com/questions/78980038/how-to-replace-jinja2-variable-only-when-first-provisioning-file
+		#set req.http.X-VC-My-Purge-Key = "CHANGE_ME";
+		include "../conf/purge-key_www.opensourceecology.org.vcl"
+
+		if (req.method == "PURGE") {
+
+			if (req.http.X-VC-Purge-Key == req.http.X-VC-My-Purge-Key) {
+				set req.http.X-VC-Purge-Key-Auth = "true";
+			} else {
+				set req.http.X-VC-Purge-Key-Auth = "false";
+			}
+
+			if (client.ip !~ purge && req.http.X-VC-Purge-Key-Auth != "true") {
+				return (synth(405, "Not allowed from " + client.ip));
+			}
+		
+			if (req.http.X-VC-Purge-Method) {
+
+				if (req.http.X-VC-Purge-Method ~ "(?i)regex") {
+					call purge_regex;
+				} elsif (req.http.X-VC-Purge-Method ~ "(?i)exact") {
+					call purge_exact;
+				} else {
+					call purge_page;
+				}
+
+			} else {
+				# No X-VC-Purge-Method header was specified.
+				# Do our best to figure out which one they want.
+				if (req.url ~ "\.\*" || req.url ~ "^\^" || req.url ~ "\$$" || req.url ~ "\\[.?*+^$|()]") {
+					call purge_regex;
+				} elsif (req.url ~ "\?") {
+					call purge_exact;
+				} else {
+					call purge_page;
+				}
+			}
+
+			return (synth(200,"Purged " + req.url + " " + req.http.host));
+
+		}
+
+    	unset req.http.X-VC-My-Purge-Key;
+    	# unset Varnish Caching custom headers from client
+    	unset req.http.X-VC-Cacheable;
+    	unset req.http.X-VC-Debug;
+
+		##################################
+		# from vcaching's lib/static.vcl #
+		##################################
+
+		if (req.method ~ "^(GET|HEAD)$" && req.url ~ "\.(jpg|jpeg|gif|png|ico|css|zip|tgz|gz|rar|bz2|pdf|txt|tar|wav|bmp|rtf|js|flv|swf|html|htm)(\?.*)?$") {
+
+			# if you use a subdomain for admin section, do not cache it
+			#if (req.http.host ~ "admin.yourdomain.com") {
+			#    set req.http.X-VC-Cacheable = "NO:Admin domain";
+			#    return(pass);
+			#}
+			# enable this if you want
+			#if (req.url ~ "debug") {
+			#    set req.http.X-VC-Debug = "true";
+			#}
+			# enable this if you need it
+			#if (req.url ~ "nocache") {
+			#    set req.http.X-VC-Cacheable = "NO:Not cacheable, nocache in URL";
+			#    return(pass);
+			#}
+
+			set req.url = regsub(req.url, "\?.*$", "");
+
+			# unset cookie only if no http auth
+			if (!req.http.Authorization) {
+				unset req.http.Cookie;
+			}
+
+			return(hash);
+
+		}
+
+		##################################################
+		# finish vcaching's vcl_recieve from default.vcl #
+		##################################################
+
+		# pipe on weird http methods
+		if (req.method !~ "^GET|HEAD|PUT|POST|TRACE|OPTIONS|DELETE$") {
+			return(pipe);
+		}
+
+		# Implementing websocket support (https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html)
+		if (req.http.Upgrade ~ "(?i)websocket") {
+			return (pipe);
+		}
+
+		# redirect yourdomain.com to www.yourdomain.com
+		#if (req.http.host ~ "^yourdomain\.com$") {
+		#	set req.http.X-VC-Redirect = "http://www.yourdomain.com" + req.url;
+		#	return (synth(750, "Moved permanently"));
+		#}
+		
+		# if you use a subdomain for admin section, do not cache it
+		#if (req.http.host ~ "admin.yourdomain.com") {
+		#	set req.http.X-VC-Cacheable = "NO:Admin domain";
+		#	return(pass);
+		#}
+		
+		### Check for reasons to bypass the cache!
+		# never cache anything except GET/HEAD
+		if (req.method != "GET" && req.method != "HEAD") {
+			set req.http.X-VC-Cacheable = "NO:Request method:" + req.method;
+			return(pass);
+		}
+		
+		# don't cache logged-in users. you can set users `logged in cookie` name in settings
+		if (req.http.Cookie ~ "wordpress_logged_in") {
+			set req.http.X-VC-Cacheable = "NO:Found logged in cookie";
+			return(pass);
+		}
+		
+		# don't cache ajax requests
+		if (req.http.X-Requested-With == "XMLHttpRequest") {
+			set req.http.X-VC-Cacheable = "NO:Requested with: XMLHttpRequest";
+			return(pass);
+		}
+		
+		# don't cache these special pages. Not needed, left here as example
+		#if (req.url ~ "nocache|wp-admin|wp-(comments-post|login|activate|mail)\.php|bb-admin|server-status|control\.php|bb-login\.php|bb-reset-password\.php|register\.php") {
+		#	set req.http.X-VC-Cacheable = "NO:Special page: " + req.url;
+		#	return(pass);
+		#}
+		
+		### looks like we might actually cache it!
+		# fix up the request
+		set req.url = regsub(req.url, "\?replytocom=.*$", "");
+		
+		# strip query parameters from all urls (so they cache as a single object)
+		# be carefull using this option
+		#if (req.url ~ "\?.*") {
+		#	set req.url = regsub(req.url, "\?.*", "");
+		#}
+		
+		# Remove has_js, Google Analytics __*, and wooTracker cookies.
+		set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(has_js|wooTracker)=[^;]*", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
+		set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
+		set req.http.Cookie = regsub(req.http.Cookie, "^;\s*", "");
+		# Remove DoubleClick offensive cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "__gads=[^;]+(; )?", "");
+		
+		# Remove the Quant Capital cookies (added by some plugin, all __qca)
+		set req.http.Cookie = regsuball(req.http.Cookie, "__qc.=[^;]+(; )?", "");
+		
+		# Remove the AddThis cookies
+		set req.http.Cookie = regsuball(req.http.Cookie, "__atuv.=[^;]+(; )?", "");
+		
+		# Remove a ";" prefix in the cookie if present
+		set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
+		
+		# Are there cookies left with only spaces or that are empty?
+		if (req.http.Cookie ~ "^\s*$") {
+			unset req.http.Cookie;
+		}
+		
+		# Protecting against the HTTPOXY CGI vulnerability.
+		unset req.http.proxy;
+		
+		# Remove the Google Analytics added parameters.
+		if (req.url ~ "(\?|&)(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=") {
+			set req.url = regsuball(req.url, "&(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "");
+			set req.url = regsuball(req.url, "\?(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "?");
+			set req.url = regsub(req.url, "\?&", "?");
+			set req.url = regsub(req.url, "\?$", "");
+		}
+		
+		# Strip hash, server doesn't need it.
+		if (req.url ~ "\#") {
+			set req.url = regsub(req.url, "\#.*$", "");
+		}
+		
+		# Strip a trailing ? if it exists
+		if (req.url ~ "\?$") {
+			set req.url = regsub(req.url, "\?$", "");
+		}
+		
+		# Normalize the query arguments
+		set req.url = std.querysort(req.url);
+		
+		return(hash);
+
+	}
+}
+
+sub vcl_hash {
+
+	if ( req.http.host ~ "^(www|blog)\.opensourceecology\.org$" ){
+
+		if (req.http.host) {
+			set req.http.hash = req.http.hash + "#" + req.http.host;
+		} else {
+			set req.http.hash = req.http.hash + "#" + server.ip;
+		}
+
+		# Add the browser cookie only if cookie found. Not needed, left here as example
+		#if (req.http.Cookie ~ "wp-postpass_|wordpress_logged_in_|comment_author|PHPSESSID") {
+		#	hash_data(req.http.Cookie);
+		#	set req.http.hash = req.http.hash + "#" + req.http.Cookie;
+		#}
+		#
+	}
+}
+
+sub vcl_backend_response {
+
+	if ( beresp.backend.name == "www_opensourceecology_org" ){
+
+		#################################
+		# from vcaching's lib/purge.vcl #
+		#################################
+
+    	set beresp.http.X-VC-Req-Host = bereq.http.host;
+    	set beresp.http.X-VC-Req-URL = bereq.url;
+    	set beresp.http.X-VC-Req-URL-Base = regsub(bereq.url, "\?.*$", "");
+
+		####################################
+		# from vcaching's lib/bigfiles.vcl #
+		####################################
+
+		# Bypass cache for files > 10 MB
+		if (std.integer(beresp.http.Content-Length, 0) > 10485760) {
+			set beresp.uncacheable = true;
+			set beresp.ttl = 120s;
+			return (deliver);
+		}
+
+		####################################
+		# from vcaching's lib/static.vcl #
+		####################################
+
+		if (bereq.method ~ "^(GET|HEAD)$" && bereq.url ~ "\.(jpg|jpeg|gif|png|ico|css|zip|tgz|gz|rar|bz2|pdf|txt|tar|wav|bmp|rtf|js|flv|swf|html|htm)$") {
+			# overwrite ttl with X-VC-TTL
+			set beresp.http.X-VC-TTL = 24*60*60;
+			set beresp.ttl = std.duration(beresp.http.X-VC-TTL + "s", 0s);
+			set beresp.http.X-VC-Cacheable = "YES:Is cacheable, ttl: " + beresp.ttl;
+		}
+		
+		###########################################################
+		# finish vcaching's vcl_backend_response from default.vcl #
+		###########################################################
+
+		# make sure grace is at least 2 minutes
+		if (beresp.grace < 2m) {
+			set beresp.grace = 2m;
+		}
+		
+		# overwrite ttl with X-VC-TTL
+		if (beresp.http.X-VC-TTL) {
+			set beresp.ttl = std.duration(beresp.http.X-VC-TTL + "s", 0s);
+		}
+		
+		# catch obvious reasons we can't cache
+		if (beresp.http.Set-Cookie) {
+			set beresp.ttl = 0s;
+		}
+		
+		# Don't cache object as instructed by header bereq.X-VC-Cacheable
+		if (bereq.http.X-VC-Cacheable ~ "^NO") {
+			set beresp.http.X-VC-Cacheable = bereq.http.X-VC-Cacheable;
+			set beresp.uncacheable = true;
+			set beresp.ttl = 120s;
+		
+		# Varnish determined the object is not cacheable
+		} else if (beresp.ttl <= 0s) {
+
+			if (!beresp.http.X-VC-Cacheable) {
+				set beresp.http.X-VC-Cacheable = "NO:Not cacheable, ttl: "+ beresp.ttl;
+			}
+
+			set beresp.uncacheable = true;
+			set beresp.ttl = 120s;
+		
+		# You are respecting the Cache-Control=private header from the backend
+		} else if (beresp.http.Cache-Control ~ "private") {
+
+			set beresp.http.X-VC-Cacheable = "NO:Cache-Control=private";
+			set beresp.uncacheable = true;
+			set beresp.ttl = 120s;
+		
+		# Cache object
+		} else if (beresp.http.X-VC-Enabled ~ "true") {
+
+			if (!beresp.http.X-VC-Cacheable) {
+				set beresp.http.X-VC-Cacheable = "YES:Is cacheable, ttl: " + beresp.ttl;
+			}
+		
+		# Do not cache object
+		} else if (beresp.http.X-VC-Enabled ~ "false") {
+
+			if (!beresp.http.X-VC-Cacheable) {
+				set beresp.http.X-VC-Cacheable = "NO:Disabled";
+			}
+
+			set beresp.ttl = 0s;
+
+		}
+		
+		# Avoid caching error responses
+		#if (beresp.status == 404 || beresp.status >= 500) {
+		if ( beresp.status != 200 && beresp.status != 203 && beresp.status != 300 && beresp.status != 301 && beresp.status != 302 && beresp.status != 304 && beresp.status != 307 && beresp.status != 410 && beresp.status != 404 ) {
+			set beresp.ttl   = 0s;
+			set beresp.grace = 15s;
+		}
+		
+		# Deliver the content
+		return(deliver);
+
+	}
+
+}
+
+sub vcl_synth {
+
+	if ( req.http.host ~ "^(www|blog)\.opensourceecology\.org$" ){
+
+		if (resp.status == 750) {
+			set resp.http.Location = req.http.X-VC-Redirect;
+			set resp.status = 302;
+			return(deliver);
+		}
+
+	}
+
+}
+
+sub vcl_pipe {
+
+	if ( req.http.host ~ "^(www|blog)\.opensourceecology\.org$" ){
+
+		if (req.http.upgrade) {
+			set bereq.http.upgrade = req.http.upgrade;
+		}
+
+	}
+}
+
+sub vcl_deliver {
+
+	if ( req.http.host ~ "^(www|blog)\.opensourceecology\.org$" ){
+
+		#################################
+		# from vcaching's lib/purge.vcl #
+		#################################
+
+		unset resp.http.X-VC-Req-Host;
+		unset resp.http.X-VC-Req-URL;
+		unset resp.http.X-VC-Req-URL-Base;
+		
+		if (obj.hits > 0) {
+			set resp.http.X-VC-Cache = "HIT";
+		} else {
+			set resp.http.X-VC-Cache = "MISS";
+		}
+		
+		if (req.http.X-VC-Debug ~ "true" || resp.http.X-VC-Debug ~ "true") {
+
+			set resp.http.X-VC-Hash = req.http.hash;
+
+			if (req.http.X-VC-DebugMessage) {
+				set resp.http.X-VC-DebugMessage = req.http.X-VC-DebugMessage;
+			}
+
+		} else {
+			unset resp.http.X-VC-Enabled;
+			unset resp.http.X-VC-Cache;
+			unset resp.http.X-VC-Debug;
+			unset resp.http.X-VC-DebugMessage;
+			unset resp.http.X-VC-Cacheable;
+			unset resp.http.X-VC-Purge-Key-Auth;
+			unset resp.http.X-VC-TTL;
+		}
+	}
+}

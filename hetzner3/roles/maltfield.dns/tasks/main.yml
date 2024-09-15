@@ -1,0 +1,56 @@
+- name: install packages for encrypted DNS
+  apt:
+    update_cache: yes
+    pkg:
+      - stubby
+      - unbound
+      - resolvconf
+
+# default stubby systemd config uses "Dynamic User" so we can't whitelist
+# iptables rules by uid; this fixes that
+- name: Add stubby user
+  user:
+    name: stubby
+    create_home: no
+    shell: /usr/sbin/nologin
+
+- name: /etc/systemd/system/stubby.service
+  template:
+    src: stubby.service.j2
+    dest: /etc/systemd/system/stubby.service
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart stubby
+
+- name: /etc/stubby/stubby.yml
+  template:
+    src: stubby.yml.j2
+    dest: /etc/stubby/stubby.yml
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart stubby
+
+- name: /etc/unbound/unbound.conf.d/ose.conf
+  template:
+    src: ose.conf.j2
+    dest: /etc/unbound/unbound.conf.d/ose.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart unbound
+
+# this config with resolvconf will prevent /etc/resolv.conf from being updated
+# automatically by other daemons https://wiki.debian.org/resolv.conf
+- name: /etc/resolvconf.conf
+  template:
+    src: resolvconf.conf.j2
+    dest: /etc/resolvconf.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes

@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    phplist.virtualhost.include
+# Version: 0.1
+# Purpose: File intended to be Include()d into other phpList vhost files'
+#          <VirtualHost> blocks
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+	Include 'conf-available/security.virtualhost.include'
+
+	# disable some pesky ModSecurity rules that cause false-positives, as needed
+	# (found by logs in: /var/log/apache2/modsec_audit.log)
+	<Location "/">
+		<IfModule security2_module>
+			SecRuleEngine On
+			SecRuleRemoveById 970901 950001 950120 950901 981173 981317 973300 960020 960024 950911 981231 981248 981245 981256 973338 973304 973306 973333 973344 981257 981240 981246 981243 973336 958057 958006 958008 958049 958051 958056 958011 958030 958039 959072 959073 959151 973301 973302 973308 973314 973331 973315 973330 973327 973322 973348 973321 973335 973334 973332 973347 973316 200004 981172 960915 200003
+		</IfModule>
+	</Location>
+

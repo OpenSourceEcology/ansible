@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    catch-all.vcl
+# Version: 0.2
+# Purpose: put here actions for vcl_recv that should be done for *all* vhosts
+#          note that this will *not* be called if the vhost-specific vcl file
+#          in 'sites-enabled/' (if listed in 'all-vhosts.vcl') has a return()
+#          
+#          See this link for more info:
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-12
+# Updated: 2020-05-23
+################################################################################
+
+sub vcl_recv {
+
+}

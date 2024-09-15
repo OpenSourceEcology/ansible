@@ -1,0 +1,29 @@
+{{ ansible_managed }}
+
+2024-07-26
+==========
+
+The process to restore from backups is documented on the wiki
+
+ * https://wiki.opensourceecology.org/wiki/Backblaze#Restore_from_backups
+
+Oh, the wiki is down and you need to restore from backups to restore the wiki? Don't worry, I got you.
+
+All backups are stored on Backblaze B2. You can download them with rclone or just by logging into the Backblaze B2 WUI.
+
+First decrypt the main wrapper tar with `gpg`
+
+  gpg --batch --passphrase-file <path-to-symmetric-encrypton-private-key> --decrypt <path-to-encrypted-tarball> > <path-to-decrypted-tarball>
+
+For example:
+
+  gpg --batch --passphrase-file /root/backups/ose-backups-cron.key --decrypt daily_hetzner2_20240726_160837.tar.gpg > daily_hetzner2_20240726_160837.tar
+
+Then you can untar the wrapper tarball and the compressed tarball inside of that. For example:
+
+  tar -xf daily_hetzner2_20240726_160837.tar
+  cd root/backups/sync/daily_hetzner2_20240726_160837/www/
+  tar -xf www.20240726_160837.tar.gz
+  head var/www/html/www.opensourceecology.org/htdocs/index.php
+
+--Michael Altfield <https://michaelaltfield.net.>

@@ -1,0 +1,81 @@
+---
+- name: install backups prereqs
+  apt:
+    update_cache: yes
+    pkg:
+      - rclone
+      - gpg
+      - pigz
+
+- name: Make root's hardened backups dir
+  file:
+    path: /root/backups
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Add b2user user
+  user:
+    name: b2user
+
+- name: Make b2user's hardened backups
+  file:
+    path: /home/b2user/backups
+    state: directory
+    owner: b2user
+    group: b2user
+    mode: 0700
+
+- name: Make b2user's sync dir
+  file:
+    path: /home/b2user/backups/sync
+    state: directory
+    owner: b2user
+    group: b2user
+    mode: 0700
+
+- name: Backup logs dir
+  file:
+    path: /var/log/backups
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Backup script
+  template:
+    src: backup.sh.j2
+    dest: /root/backups/backup.sh
+    owner: root
+    group: root
+    mode: 0700
+    backup: yes
+
+- name: Backup Report script
+  template:
+    src: backupReport.sh.j2
+    dest: /root/backups/backupReport.sh
+    owner: root
+    group: root
+    mode: 0700
+    backup: yes
+
+- name: Backup README.txt
+  template:
+    src: README.txt.j2
+    dest: /root/backups/README.txt
+    owner: root
+    group: root
+    mode: 0700
+    backup: yes
+
+- name: Backup cron
+  template:
+    src: backup_to_backblaze.j2
+    dest: /etc/cron.d/backup_to_backblaze
+    owner: root
+    group: root
+    mode: 0644
+    backup: no
+

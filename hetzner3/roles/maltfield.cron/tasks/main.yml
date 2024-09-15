@@ -1,0 +1,16 @@
+- name: phplist cron
+  template:
+    src: phplist_cron.j2
+    dest: /etc/cron.d/phplist_cron
+    owner: root
+    group: root
+    mode: 0644
+
+- name: xhprof cron
+  template:
+    src: xhprof_cron.j2
+    dest: /etc/cron.d/xhprof_cron
+    owner: root
+    group: root
+    mode: 0644
+

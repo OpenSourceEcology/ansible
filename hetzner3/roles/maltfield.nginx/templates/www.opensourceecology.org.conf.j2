@@ -1,0 +1,93 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    www.opensourceecology.org.conf
+# Version: 0.4
+# Purpose: Internet-listening web server for truncating https, basic DOS
+#          protection, and passing to varnish cache (varnish then passes to
+#          apache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-01-03
+# Updated: 2024-09-14
+################################################################################
+
+server {
+	# redirect the naked domain to 'www'
+	#log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+   #                   '$status $body_bytes_sent "$http_referer" '
+   #                   '"$http_user_agent" "$http_x_forwarded_for"';
+	#access_log /var/log/nginx/www.opensourceecology.org/access.log main;
+	#error_log /var/log/nginx/www.opensourceecology.org/error.log main;
+   include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+	server_name opensourceecology.org;
+
+	####################
+	# REDIRECT TO WIKI #
+	####################
+
+	# this is for backwards-compatibility; before 2018-05-24, both the wiki and
+	# this site shared the same domain-name. So, just in case someone sends
+	# opensourceecology.org/wiki/ a query trying to find the wiki, let's send them
+	# to the right place..
+
+	location ~* '^/wiki/' {
+
+		return 301 https://wiki.opensourceecology.org$uri;
+
+	}
+
+
+	# this must be wrapped in a dumb location block or else the above block
+	# does not work *shrug*
+
+	location / {
+		return 301 https://www.opensourceecology.org$uri;
+	}
+	
+}
+
+server {
+
+	access_log /var/log/nginx/www.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/www.opensourceecology.org/error.log;
+
+   include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+   listen {{ ansible_default_ipv4.address }}:443 default_server;
+   listen [{{ ansible_default_ipv6.address }}]:443 default_server;
+
+   server_name www.opensourceecology.org blog.opensourceecology.org _;
+
+	#############
+	# SITE_DOWN #
+	#############
+	# uncomment this block && restart nginx prior to apache work to display the
+	# "SITE DOWN" webpage for our clients
+
+	#root /var/www/html/SITE_DOWN/htdocs/;
+   #index index.html index.htm;
+
+	# force all requests to load exactly this page
+	#location / {
+	#	try_files $uri /index.html;
+	#}
+
+	###################
+	# SEND TO VARNISH #
+	###################
+
+   location / {
+      proxy_pass http://127.0.0.1:6081;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header Host $host;
+   }
+
+}
+

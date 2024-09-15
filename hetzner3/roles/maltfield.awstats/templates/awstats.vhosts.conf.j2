@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    awstats.{{ item }}.conf
+# Version: 0.1
+# Purpose: Config file for awstats for vhost = {{ item }}
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+LogFile="/var/log/nginx/{{ item }}/access.log"
+SiteDomain="{{ item }}"
+
+Include "common.conf"

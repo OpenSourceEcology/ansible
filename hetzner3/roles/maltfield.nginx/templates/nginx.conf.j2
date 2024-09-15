@@ -1,0 +1,172 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    nginx.conf
+# Version: 0.2
+# Purpose: Main nginx config file. Nginx is only used as https terminiation for
+#          our varnish -> apache configuration. And basic DOS protection. And
+#          enabling SITE_DOWN pages for our vhosts when making changes.
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-23
+# Updated: 2024-08-07
+################################################################################
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+
+user www-data;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+
+	###################
+	# DEFAULT OPTIONS #
+	###################
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+	#######################################
+	# CUSTOM OSE CONFIG BELOW --maltfield #
+	#######################################
+
+	# increase the default allowable length of vhost names
+	server_names_hash_bucket_size 128;
+
+	# don't leak our version
+	server_tokens off;
+
+	# make sure autoindex is off by default
+	autoindex off;
+
+	# block some bot's useragents (may need to remove some, if impacts SEO)
+	include /etc/nginx/blockuseragents.rules;
+
+	limit_conn_zone $binary_remote_addr zone=addr:10m;
+	limit_conn addr 10;
+
+   # only permit a max of 30 requests per min from each client ip address
+   # prevents DOS
+	limit_req_zone $binary_remote_addr zone=one:10m rate=120r/m;
+   limit_req zone=one;
+
+	# set max time to wait between clients writing.
+	# prevents DOS; ie: Slowloris attack
+	client_body_timeout 5s;
+	client_header_timeout 5s;
+
+	gzip on;
+
+	# recommended by
+	#  * https://mozilla.github.io/server-side-tls/ssl-config-generator/
+	ssl_session_timeout 1d;
+	ssl_session_tickets off;
+
+	# disable insecure ssl versions by whitelisting only safe TLS versions
+	ssl_protocols TLSv1.2 TLSv1.3;
+
+	# disable insecure ssl ciphers by whitelisting only safe ones
+	# and prioritizing Perfect Forward Secracy ciphers
+	ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+	# choose the cipher based on our preference, not the client's preference
+	ssl_prefer_server_ciphers on;
+
+	# create a cache for session reuse (default of 5min timeout) so expensive
+	# handshakes don't need to be redone >1x per session
+	ssl_session_cache shared:SSL:10m;
+
+	# enable trustable perfect forward secracy using the DH key we built
+	# (this prevents the openssl default 1024-bit key, which is too small)
+	# was created using: `openssl dhparam -out dhparam.pem 4096`
+	ssl_dhparam /etc/ssl/certs/dhparam.pem;
+
+	# enable OCSP stapling (this is really providing privacy to the client
+	# at our expense, not really hardening our server)
+	ssl_stapling on;
+	ssl_stapling_verify on;
+	resolver 1.1.1.1 9.9.9.9 valid=300s;
+	resolver_timeout 5s;
+   ssl_trusted_certificate "/etc/letsencrypt/live/openbuildinginstitute.org/fullchain.pem";
+
+	# request browsers to not allow iframing my site (prevent clickjacking)
+	add_header X-Frame-Options "SAMEORIGIN";
+
+	# xss protection (?)
+	add_header X-XSS-Protection "1; mode=block";
+
+	# prevent buffer overflows
+	#client_body_buffer_size  1k;
+	client_body_buffer_size  900k;
+	client_header_buffer_size 1k;
+
+	# 2022-10-27: I had to increase this for linkedin to be able to pull your featured images
+	#large_client_header_buffers 2 1k;
+	large_client_header_buffers 2 4k;
+
+	# allow large posts for image uploads
+	#client_max_body_size 1k;
+	#client_max_body_size 900k;
+	client_max_body_size 10M;
+
+	# HSTS: tell browsers to always require https after the first visit
+	# (prevents SSLStrip)
+
+	# TODO: restore max-age after confirming that https is working as desired
+	#       on hetzner
+	#add_header Strict-Transport-Security "max-age=15768000;includeSubDomains";
+	add_header Strict-Transport-Security "max-age=1;includeSubDomains";
+
+	# disable following of symlinks.
+	disable_symlinks on;
+
+	# redirect all port 80 requests to use https
+	server {
+
+		include conf.d/secure.include;
+
+		listen 80;
+		listen [::]:80;
+
+		# I'm hijacking this non-https server block vhost for munin stats
+		location /nginx_status {
+			stub_status on;
+			access_log off;
+			allow 127.0.0.1/32;
+			allow ::1/128;
+			deny all;
+		}
+
+		# this location block is essentially an 'else' statement
+		location / {
+			# simple is good. This works with ipv6, which doesn't have any dots (.)!
+			# from here https://bjornjohansen.no/redirect-to-https-with-nginx
+			return 301 https://$host$request_uri;
+		}
+
+	}
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /etc/nginx/sites-enabled/*.conf;
+
+}

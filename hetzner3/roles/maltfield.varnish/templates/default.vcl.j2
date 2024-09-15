@@ -1,0 +1,27 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    default.vcl
+# Version: 0.2
+# Purpose: Main config file for varnish cache. Note that it's intentionally
+#          mostly bare to allow robust vhost-specific logic. Please see this
+#          for more info:
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-12
+# Updated: 2024-09-11
+################################################################################
+
+vcl 4.0;
+
+############
+# INCLUDES #
+############
+
+import std;
+
+include "conf/acl.vcl";
+include "lib/purge.vcl";
+
+include "all-vhosts.vcl";
+include "catch-all.vcl";

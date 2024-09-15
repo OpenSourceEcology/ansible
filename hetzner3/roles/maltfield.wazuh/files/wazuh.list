@@ -1,0 +1,3 @@
+# {{ ansible_managed }}
+#deb https://packages.wazuh.com/3.x/apt/ stable main
+deb https://packages.wazuh.com/4.x/apt/ stable main

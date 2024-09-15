@@ -1,0 +1,8 @@
+- name: restart varnish
+  service: name=varnish.service state=restarted
+  become: yes
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  become: yes

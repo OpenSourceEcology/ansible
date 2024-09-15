@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    xhprof-html.opensourceecology.org.conf
+# Version: 0.1
+# Purpose: localhost-only-listening, http-only, name-based-vhost for serving
+#          traffic to varnish
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+<VirtualHost 127.0.0.1:8000>
+
+	ServerName xhprof-html.opensourceecology.org
+
+	DocumentRoot "/var/www/html/xhprof-html.opensourceecology.org/htdocs"
+
+	CustomLog "/var/log/apache2/xhprof-html.opensourceecology.org/access.log" combined
+	ErrorLog "/var/log/apache2/xhprof-html.opensourceecology.org/error.log"
+
+	Include 'conf-available/security.virtualhost.include'
+
+	<Directory "/var/www/html/xhprof-html.opensourceecology.org/htdocs">
+		Include 'conf-available/security.directory.include'
+		Options +FollowSymLinks
+	</Directory>
+
+	# Disable ModSecurity because this is gonna send a lot of PHP code out
+	# (and it's only available behind htpasswd anyway)
+	<Location "/">
+		<IfModule security2_module>
+      	SecRuleEngine Off
+   	</IfModule>
+	</Location>
+
+</VirtualHost>
+

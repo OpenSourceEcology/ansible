@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    stuybby.service
+# Version: 0.1
+# Purpose: Systemd service for stubby (DoT = DNS-over-TLS)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+[Unit]
+Description=DNS Privacy Stub Resolver
+Documentation=https://dnsprivacy.org/wiki/display/DP/DNS+Privacy+Daemon+-+Stubby
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+WorkingDirectory=/run/stubby
+ExecStart=/usr/bin/stubby
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+RuntimeDirectory=stubby
+#DynamicUser=true
+User=stubby
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,40 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    https.openbuildinginstitute.org.include
+# Version: 0.2
+# Purpose: To be included in server{} blocks that use the https certificate for
+#          any subdomains of openbuildinginstitute.org
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-27
+# Updated: 2024-08-07
+################################################################################
+ssl on;
+
+ssl_certificate /etc/letsencrypt/live/openbuildinginstitute.org/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/openbuildinginstitute.org/privkey.pem;
+
+# verify chain of trust of OCSP response using Root CA and Intermediate certs
+ssl_trusted_certificate /etc/letsencrypt/live/openbuildinginstitute.org/chain.pem;
+
+########
+# HSTS #
+########
+
+# tell (supported) browsers to pin our certificate chain in their cache,
+# so MITM attacks won't work (on supported browsers) within the expiration
+#
+# Note: fucking up may mean visitors can't access your site for months
+#       (or w/e exp time)
+
+# TODO: increase this back to 6-months && add subdomains
+#add_header Strict-Transport-Security "max-age=15768000;includeSubDomains";
+add_header Strict-Transport-Security "max-age=15552001";
+
+########
+# HPKP #
+########
+
+# see https://tech.michaelaltfield.net/2017/09/05/hpkp-best-practices-lets-encrypt/
+
+# TODO

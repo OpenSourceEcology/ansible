@@ -1,0 +1,149 @@
+---
+- name: install nginx
+  apt:
+    update_cache: yes
+    pkg:
+      - nginx
+
+- name: generate dh parameters file
+  command: openssl dhparam -out /etc/ssl/certs/dhparam.pem 4096
+  command: chown root:root /etc/ssl/certs/dhparam.pem
+  command: chmod 0400 /etc/ssl/certs/dhparam.pem
+  args:
+    creates: /etc/ssl/certs/dhparam.pem
+
+- name: remove default sites
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: /etc/nginx/nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+- name: /etc/nginx/conf.d/secure.include
+  template:
+    src: secure.include.j2
+    dest: /etc/nginx/conf.d/secure.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+- name: /etc/nginx/conf.d/https.opensourceecology.org.include
+  template:
+    src: https.opensourceecology.org.include.j2
+    dest: /etc/nginx/conf.d/https.opensourceecology.org.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+- name: /etc/nginx/conf.d/https.openbuildinginstitute.org.include
+  template:
+    src: https.openbuildinginstitute.org.include.j2
+    dest: /etc/nginx/conf.d/https.openbuildinginstitute.org.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+##########
+# VHOSTS #
+##########
+
+# munin uses nginx only (no varnish or apache), so it's not in the 'vhosts'
+# var loop below
+
+- name: Create log dir for munin.opensourceecology.org
+  file:
+    dest: /var/log/nginx/munin.opensourceecology.org/
+    owner: www-data
+    group: www-data
+    state: directory
+    mode: 0755
+  notify: restart nginx
+
+- name: /etc/nginx/sites-enabled/munin.opensourceecology.org.conf
+  template:
+    src: munin.opensourceecology.org.conf.j2
+    dest: /etc/nginx/sites-enabled/munin.opensourceecology.org.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+# awstats uses nginx only (no varnish or apache), so it's not in the 'vhosts'
+# var loop below
+
+- name: Create log dir for awstats.opensourceecology.org
+  file:
+    dest: /var/log/nginx/awstats.opensourceecology.org/
+    owner: www-data
+    group: www-data
+    state: directory
+    mode: 0755
+  notify: restart nginx
+
+- name: /etc/nginx/sites-enabled/awstats.opensourceecology.org.conf
+  template:
+    src: awstats.opensourceecology.org.conf.j2
+    dest: /etc/nginx/sites-enabled/awstats.opensourceecology.org.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
+# LOOP THROUGH ALL THE SITES DEFINED IN THE 'VHOSTS' VAR
+
+- name: "Create /var/log/nginx/{{ item }}"
+  file:
+    dest: "/var/log/nginx/{{ item }}"
+    owner: www-data
+    group: adm
+    state: directory
+    mode: 0750
+  loop: "{{ virtual_hosts }}"
+
+- name: "sites-available/{{ item }}.conf"
+  template:
+    src: "{{ item }}.conf.j2"
+    dest: "/etc/nginx/sites-available/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+  loop: "{{ virtual_hosts }}"
+
+- name: "sites-enabled/{{ item }}.conf"
+  file:
+    src: "/etc/nginx/sites-available/{{ item }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ item }}.conf"
+    owner: root
+    group: root
+    state: link
+  notify: restart nginx
+  loop: "{{ virtual_hosts }}"
+
+# default vhost
+- name: /etc/nginx/sites-enabled/00-default.conf
+  template:
+    src: 00-default.conf.j2
+    dest: /etc/nginx/sites-enabled/00-default.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx

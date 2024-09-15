@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    https.opensourceecolgy.org.include
+# Version: 0.2
+# Purpose: To be included in server{} blocks that use the https certificate for
+#          any subdomains of opensourceecology.org
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-27
+# Updated: 2024-08-07
+################################################################################
+ssl on;
+
+ssl_certificate /etc/letsencrypt/live/opensourceecology.org/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/opensourceecology.org/privkey.pem;
+
+# verify chain of trust of OCSP response using Root CA and Intermediate certs
+ssl_trusted_certificate /etc/letsencrypt/live/opensourceecology.org/chain.pem;
+
+########
+# HSTS #
+########
+
+# tell (supported) browsers to pin our certificate chain in their cache,
+# so MITM attacks won't work (on supported browsers) within the expiration
+#
+# Note: fucking up may mean visitors can't access your site for months
+#       (or w/e exp time)
+
+# TODO: increase this back to 6-months && add subdomains
+#add_header Strict-Transport-Security "max-age=15768000;includeSubDomains";
+add_header Strict-Transport-Security "max-age=15552001";
+
+########
+# HPKP #
+########
+
+# see https://tech.michaelaltfield.net/2017/09/05/hpkp-best-practices-lets-encrypt/
+
+# TODO: increase this back to 1 month
+#add_header Public-Key-Pins "pin-sha256=\"UbSbHFsFhuCrSv9GNsqnGv4CbaVh5UV5/zzgjLgHh9c=\"; pin-sha256=\"YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg=\"; pin-sha256=\"C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=\"; pin-sha256=\"Vjs8r4z+80wjNcr1YKepWQboSIRi63WsWXhIMN+eWys=\"; pin-sha256=\"lCppFqbkrlJ3EcVFAkeip0+44VaoJUymbnOaEUk7tEU=\"; pin-sha256=\"K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q=\"; pin-sha256=\"Y9mvm0exBk1JoQ57f9Vm28jKo5lFm/woKcVxrYxu80o=\"; pin-sha256=\"EGn6R6CqT4z3ERscrqNl7q7RC//zJmDe9uBhS/rnCHU=\"; pin-sha256=\"NIdnza073SiyuN1TUa7DDGjOxc1p0nbfOCfbxPWAZGQ=\"; pin-sha256=\"fNZ8JI9p2D/C+bsB3LH3rWejY9BGBDeW0JhMOiMfa7A=\"; pin-sha256=\"oyD01TTXvpfBro3QSZc1vIlcMjrdLTiL/M9mLCPX+Zo=\"; pin-sha256=\"0cRTd+vc1hjNFlHcLgLCHXUeWqn80bNDH/bs9qMTSPo=\"; pin-sha256=\"MDhNnV1cmaPdDDONbiVionUHH2QIf2aHJwq/lshMWfA=\"; pin-sha256=\"OIZP7FgTBf7hUpWHIA7OaPVO2WrsGzTl9vdOHLPZmJU=\"; max-age=43200; includeSubDomains; report-uri=\"http://opensourceecology.org/hpkp-report\"";
+add_header Public-Key-Pins "pin-sha256=\"UbSbHFsFhuCrSv9GNsqnGv4CbaVh5UV5/zzgjLgHh9c=\"; pin-sha256=\"YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg=\"; pin-sha256=\"C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=\"; pin-sha256=\"Vjs8r4z+80wjNcr1YKepWQboSIRi63WsWXhIMN+eWys=\"; pin-sha256=\"lCppFqbkrlJ3EcVFAkeip0+44VaoJUymbnOaEUk7tEU=\"; pin-sha256=\"K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q=\"; pin-sha256=\"Y9mvm0exBk1JoQ57f9Vm28jKo5lFm/woKcVxrYxu80o=\"; pin-sha256=\"EGn6R6CqT4z3ERscrqNl7q7RC//zJmDe9uBhS/rnCHU=\"; pin-sha256=\"NIdnza073SiyuN1TUa7DDGjOxc1p0nbfOCfbxPWAZGQ=\"; pin-sha256=\"fNZ8JI9p2D/C+bsB3LH3rWejY9BGBDeW0JhMOiMfa7A=\"; pin-sha256=\"oyD01TTXvpfBro3QSZc1vIlcMjrdLTiL/M9mLCPX+Zo=\"; pin-sha256=\"0cRTd+vc1hjNFlHcLgLCHXUeWqn80bNDH/bs9qMTSPo=\"; pin-sha256=\"MDhNnV1cmaPdDDONbiVionUHH2QIf2aHJwq/lshMWfA=\"; pin-sha256=\"OIZP7FgTBf7hUpWHIA7OaPVO2WrsGzTl9vdOHLPZmJU=\"; max-age=3600; includeSubDomains; report-uri=\"http://opensourceecology.org/hpkp-report\"";
+

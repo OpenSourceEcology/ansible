@@ -1,0 +1,7 @@
+- name: restart wazuh-manager
+  service: name=wazuh-manager state=restarted
+  become: yes
+
+- name: enable wazuh-manager
+  command: systemctl enable wazuh-manager
+  become: yes

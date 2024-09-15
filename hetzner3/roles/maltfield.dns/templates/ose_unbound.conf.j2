@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    ose_unbound.conf
+# Version: 0.1
+# Purpose: Config file for unbound (local DNS proxy/cache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+server:
+  use-syslog: yes
+  username: "unbound"
+  directory: "/etc/unbound"
+#  trust-anchor-file: trusted-key.key
+#  root-hints: "/etc/unbound/root.hints"
+  do-not-query-localhost:  no
+forward-zone:
+  name: "."
+    forward-addr: 127.0.0.1@8053
+    forward-addr: ::1@8053

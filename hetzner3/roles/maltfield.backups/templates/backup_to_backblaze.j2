@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+SHELL=/bin/bash
+
+20 07 * * * root sleep $(( RANDOM \% 3600 )) && time /bin/nice /root/backups/backup.sh &>> /var/log/backups/backup.log
+20 04 03 * * root sleep $(( RANDOM \% 3600 )) && time /bin/nice /root/backups/backupReport.sh

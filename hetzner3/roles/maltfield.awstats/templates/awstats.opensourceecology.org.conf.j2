@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    awstats.opensourceecology.org.conf
+# Version: 0.1
+# Purpose: Main config file for OSE awstats
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+LogFile="/var/log/nginx/www.opensourceecology.org/access.log"
+SiteDomain="opensourceecology.org"
+HostAliases="www.opensourceecology.org {{ ansible_default_ipv4.address }} {{ ansible_default_ipv6.address }}"
+
+Include "common.conf"

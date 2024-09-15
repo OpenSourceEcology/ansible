@@ -1,0 +1,101 @@
+#!/bin/bash
+#set -x
+# {{ ansible_managed }}
+################################################################################
+# Author:  Michael Altfield <michael at opensourceecology dot org>
+# Created: 2019-03-17
+# Updated: 2022-10-28
+# Version: 0.2
+# Purpose: Sends a report of the contents of the b2 backup bucket over email
+################################################################################
+
+############
+# SETTINGS #
+############
+
+source /root/backups/backup.settings
+
+THIS_SCRIPT_ABS_PATH=`realpath $0`
+
+########################
+# CHECK RECENT BACKUPS #
+########################
+
+# instantiate the warnings as an empty string
+WARNINGS=""
+
+#backupsInCloud=`$SUDO -u ${b2UserName} $B2 ls ${B2_BUCKET_NAME} 2>&1`
+backupsInCloud=`${RCLONE} ls "b2:${B2_BUCKET_NAME}" 2>&1`
+
+# was there an error with the b2 command?
+if [ $? -ne 0 ]; then
+	# there was an error executing the b2 command
+	WARNINGS="${WARNINGS}\n${backupsInCloud}"
+fi
+
+
+###################################
+# SANITY CHECK FOR RECENT BACKUPS #
+###################################
+
+# check for first-of-this-month's backup
+needle=`$DATE --date="-1 days" "+%Y%m01"`
+daysAgoBackup_1=`echo "${backupsInCloud}" | grep ${needle}`
+if [ -z "${daysAgoBackup_1}" ]; then
+	WARNINGS="${WARNINGS}\nWARNING: First of this month's backup (${needle}) is missing!"
+fi
+
+# check for first-of-last-month's backup
+needle=`$DATE --date="-1 month -1 days" "+%Y%m01"`
+daysAgoBackup_1=`echo "${backupsInCloud}" | grep ${needle}`
+if [ -z "${daysAgoBackup_1}" ]; then
+	WARNINGS="${WARNINGS}\nWARNING: First of last month's backup (${needle}) is missing!"
+fi
+
+# check for yesterday's backup
+needle=`$DATE --date="-1 days" "+%Y%m%d"`
+daysAgoBackup_1=`echo "${backupsInCloud}" | grep ${needle}`
+if [ -z "${daysAgoBackup_1}" ]; then
+	WARNINGS="${WARNINGS}\nWARNING: Yesterday's backup (${needle}) is missing!"
+fi
+
+# check for backup from 2 days ago
+needle=`$DATE --date="-2 days" "+%Y%m%d"`
+daysAgoBackup_1=`echo "${backupsInCloud}" | grep ${needle}`
+if [ -z "${daysAgoBackup_1}" ]; then
+	WARNINGS="${WARNINGS}\nWARNING: The day before yesterday's backup (${needle}) is missing!"
+fi
+
+#####################
+# SEND EMAIL REPORT #
+#####################
+
+# instantiate the email body
+if [ -z "${WARNINGS}" ]; then
+	emailBody="No missing backups detected"
+else
+	emailBody="ATTENTION: BACKUPS MISSING!\n\n${WARNINGS}"
+fi
+
+emailBody="${emailBody}\n\nSee below for the contents of the backblaze b2 bucket = ${B2_BUCKET_NAME}\n\n${backupsInCloud}"
+
+# footer
+emailBody="${emailBody}\n---\n"
+emailBody="${emailBody}Note: This report was generated on ${stamp} UTC by script '${THIS_SCRIPT_ABS_PATH}'\n"
+emailBody="${emailBody}      This script was triggered by '/etc/cron.d/backup_to_backblaze'\n"
+emailBody="${emailBody}\n"
+emailBody="${emailBody}      For more information about OSE backups, please see the relevant documentation pages on the wiki:\n"
+emailBody="${emailBody}       * https://wiki.opensourceecology.org/wiki/Backblaze\n"
+emailBody="${emailBody}       * https://wiki.opensourceecology.org/wiki/OSE_Server#Backups\n"
+
+echo -e "${emailBody}" | ${MAIL} -r noreply@opensourceecology.org -s "Backup Report" "${EMAIL_LIST}"
+
+echo "INFO: email body below"
+echo -e "$emailBody"
+
+########
+# EXIT #
+########
+
+# clean exit
+exit 0

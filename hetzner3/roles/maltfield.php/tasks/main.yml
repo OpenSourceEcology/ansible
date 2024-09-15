@@ -1,0 +1,56 @@
+---
+- name: install php apache module
+  apt:
+    update_cache: yes
+    pkg:
+      - libapache2-mod-php
+      - php-apcu
+  notify: restart apache
+
+- name: install php extensions/modules
+  apt:
+    update_cache: yes
+    pkg:
+      - php-pear
+      - php-gd
+      - php-mysql
+      - php-tideways
+  notify: restart apache
+
+- name: install pear Text_CAPTCHA module
+  pear:
+    name: Text_CAPTCHA
+  notify: restart apache
+
+# we have to say '-beta' or it won't install
+# https://stackoverflow.com/questions/6780536/failed-to-download-pear-http-request2-within-preferred-state-stable
+- name: install pear Image_Text module
+  pear:
+    name: Image_Text-beta
+  notify: restart apache
+
+- name: php tmp dir
+  file:
+    dest: /var/lib/php/tmp
+    owner: www-data
+    group: root
+    state: directory
+    mode: 0700
+
+- name: php wsdl soap cache dir
+  file:
+    dest: /var/lib/php/soap_cache
+    owner: www-data
+    group: root
+    state: directory
+    mode: 0700
+
+- name: install php apache module
+  template:
+    src: php_8.2.ini.j2
+    dest: /etc/php/8.2/apache2/php.ini
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache

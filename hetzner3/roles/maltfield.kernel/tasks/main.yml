@@ -1,0 +1,7 @@
+- name: /etc/sysctl.d/local.conf
+  template:
+    src: local.conf.j2
+    dest: /etc/sysctl.d/local.conf
+    owner: root
+    group: root
+    mode: 0644

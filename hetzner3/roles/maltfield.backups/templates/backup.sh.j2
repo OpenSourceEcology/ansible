@@ -1,0 +1,163 @@
+#!/bin/bash
+set -x
+# {{ ansible_managed }}
+
+################################################################################
+# Author:  Michael Altfield <michael at opensourceecology dot org>
+# Created: 2017-06-20
+# Updated: 2024-08-05
+# Version: 0.7
+# Purpose: Creates a compressed backup of DBs, webserver files, and config files
+################################################################################
+
+# Note: This backup directory itself is included in the backups so the scripts
+#       are backed-up as well. Therefore, please do not store any manually
+#       created backups here, or the /root/* tarball will become inflated.
+#       The '/root/backups/sync/' dir is excluded from this backup tarball, but
+#       its contents is deleted automatically by this script.
+#
+#       Please store large files like manual backups in /var/tmp/
+
+############
+# SETTINGS #
+############
+source /root/backups/backup.settings
+
+##############
+# PRE-BACKUP #
+##############
+
+echo "================================================================================"
+echo "INFO: Beginning Backup Run on ${stamp}"
+echo "================================================================================"
+
+# determine the prefix/interval of today's backup archive
+if [[ "`date +"%m%d"`" == "0101" ]]; then
+	# today is January 1st
+	archivePrefix="yearly"
+elif [[ `date +"%d"` == '01' ]]; then
+	# today is the 1st of the month
+	archivePrefix="monthly"
+elif [[ `date +"%u"` == '1' ]]; then
+	# today is the first day of the week = Monday
+	archivePrefix="weekly"
+else
+	# otherwise, we'll just call this a "daily" backup
+	archivePrefix="daily"
+fi
+
+# declare variables
+archiveDirName="${archivePrefix}_hetzner3_${stamp}"
+archiveFilePath="${backupDirPath}/${archiveDirName}.tar"
+encryptedArchiveFilePath="${archiveFilePath}.gpg"
+encryptedArchiveFile=`$BASENAME "${encryptedArchiveFilePath}"`
+b2EncryptedArchiveFilePath="${b2StagingDir}/${encryptedArchiveFile}"
+
+#########
+# CLEAN #
+#########
+echo "INFO: Cleaning up old backup files"
+
+# only keep the previous backups & this execution's backups; delete olders
+$RM -rf "${backupDirPath}.old"
+$MV "${backupDirPath}" "${backupDirPath}.old"
+$MKDIR -p "${backupDirPath}/${archiveDirName}"
+
+# also create the dir that will hold the final encrypted archive file, which is
+# accessible to the unprivliged b2user user (who uploads to the b2 cloud)
+$RM -rf "${b2StagingDir}.old"
+$MV "${b2StagingDir}" "${b2StagingDir}.old"
+$MKDIR -p "${b2StagingDir}"
+
+#############
+# MYSQLDUMP #
+#############
+echo "INFO: Beginning to backup mysql databases"
+
+# all databases
+$MKDIR "${backupDirPath}/${archiveDirName}/mysqldump"
+time $NICE $MYSQLDUMP -u"$mysqlUser" -p"$mysqlPass" --all-databases | $PIGZ -c > ${backupDirPath}/${archiveDirName}/mysqldump/mysqldump.${stamp}.sql.gz
+
+#########
+# FILES #
+#########
+# don't use -h == --dereference-symlinks as multiple symlinks are used pointing
+# to the webroot, causing duplicate 10s of Gigs
+echo "INFO: Beginning to backup server's files"
+
+# /etc/
+echo -e "\tINFO: /etc"
+$MKDIR "${backupDirPath}/${archiveDirName}/etc"
+time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/etc/etc.${stamp}.tar.gz /etc/*
+
+# /home/
+echo -e "\tINFO: /home"
+$MKDIR "${backupDirPath}/${archiveDirName}/home"
+time $NICE $TAR --use-compress-program=pigz --exclude "${b2StagingDir}*" -czf ${backupDirPath}/${archiveDirName}/home/home.${stamp}.tar.gz /home/*
+
+# /var/log/
+echo -e "\tINFO: /var/log"
+$MKDIR "${backupDirPath}/${archiveDirName}/log"
+time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/log/log.${stamp}.tar.gz /var/log/*
+
+# /root/
+echo -e "\tINFO: /root"
+$MKDIR "${backupDirPath}/${archiveDirName}/root"
+time $NICE $TAR --use-compress-program=pigz --exclude "${backupDirPath}*" -czf ${backupDirPath}/${archiveDirName}/root/root.${stamp}.tar.gz /root/*
+
+# /var/www/
+echo -e "\tINFO: /var/www"
+$MKDIR "${backupDirPath}/${archiveDirName}/www"
+time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/www/www.${stamp}.tar.gz /var/www/*
+
+###########
+# ENCRYPT #
+###########
+echo "INFO: Beginning encryption of backup archive"
+
+# first, wrap it all up in a single tarball (for trivial encryption) while
+# deleting the original files
+echo -e "\tINFO: Wrapping all backups into a single tarball"
+time $NICE $TAR --remove-files -cvf "${archiveFilePath}" "${backupDirPath}/${archiveDirName}/"*
+$NICE $RM -rf "${backupDirPath}/${archiveDirName}"
+
+# encrypt it; delete the unencrypted archive file
+#   we use '--compress-algo none' because everything is already compressed
+echo -e "\tINFO: Encrypting the single-file tarball"
+time $NICE $GPG --output ${encryptedArchiveFilePath} --batch --symmetric --cipher-algo aes256 --compress-algo none --passphrase-file "${encryptionKeyFilePath}" "${archiveFilePath}"
+echo -e "\tINFO: Deleting unencrypted backup archive"
+$NICE $RM "${archiveFilePath}"
+
+##########################
+# UPLOAD TO BACKBLAZE B2 #
+##########################
+
+# A note about trust: we don't trust backblaze. In general for these backups
+# (which contain super-sensitive passwords in config files) we TNO = Trust No
+# One. But the b2 software (while open source) is buggy in my experience (not
+# to mention installed from git, trusting https instead of gpg signatures--an
+# unsafe practice), so we intentionally execute `b2` as an unprivliged user =
+# b2user instead of root. Moreover, we only let b2user only see the data
+# *after* we encrypt it. This way, we don't have to trust backblaze for anything
+# more than durability.
+
+# first we move the encrypted backup archive into a dir that's readable by the b2user
+echo "INFO: moving encrypted backup file to b2user's sync dir"
+$MV "${encryptedArchiveFilePath}" "${b2EncryptedArchiveFilePath}"
+$CHOWN ${b2UserName} "${b2EncryptedArchiveFilePath}"
+
+# upload to backblaze's b2 cloud; limit bandwidth to 3 MB/s
+echo "INFO: Beginning upload to backblaze b2"
+#time $SUDO -u ${b2UserName} $TRICKLE -s -u 3000 $B2 upload-file --noProgress --threads 1 ${B2_BUCKET_NAME} "${b2EncryptedArchiveFilePath}" "${encryptedArchiveFile}"
+time $SUDO -u ${b2UserName} ${RCLONE} -v --bwlimit 3M copy "${b2EncryptedArchiveFilePath}" "b2:${B2_BUCKET_NAME}"
+
+########
+# EXIT #
+########
+
+echo "================================================================================"
+echo "INFO: Finished Backup Run at `date -u +%Y%m%d_%H%M%S`"
+echo "================================================================================"
+
+# clean exit
+exit 0

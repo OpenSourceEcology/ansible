@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    varnish.service
+# Version: 0.1
+# Purpose: Systemd service for Varnish
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-12
+# Updated: 2024-09-12
+################################################################################
+
+[Unit]
+Description=Varnish HTTP accelerator
+Documentation=https://www.varnish-cache.org/docs/6.1/ man:varnishd
+
+[Service]
+Type=simple
+LimitNOFILE=131072
+LimitMEMLOCK=82000
+
+EnvironmentFile=/etc/varnish/varnish.params
+ExecStart=/usr/sbin/varnishd -F \
+	-j unix,user=${VARNISH_USER} \
+	-a ${VARNISH_LISTEN_ADDRESS}:${VARNISH_LISTEN_PORT} \
+	-T ${VARNISH_ADMIN_LISTEN_ADDRESS}:${VARNISH_ADMIN_LISTEN_PORT} \
+	-f ${VARNISH_VCL_CONF} \
+	-S ${VARNISH_SECRET_FILE} \
+	-s ${VARNISH_STORAGE}
+ExecReload=/usr/share/varnish/varnishreload
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+
+[Install]
+WantedBy=multi-user.target

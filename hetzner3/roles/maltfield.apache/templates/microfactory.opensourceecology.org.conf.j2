@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    microfactory.opensourceecology.org.conf
+# Version: 0.3
+# Purpose: localhost-only-listening, http-only, name-based-vhost for serving
+#          traffic to varnish
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2019-04-09
+# Updated: 2024-09-11
+################################################################################
+
+<VirtualHost 127.0.0.1:8000>
+	ServerName microfactory.opensourceecology.org
+	DocumentRoot "/var/www/html/microfactory.opensourceecology.org/htdocs"
+
+	CustomLog "/var/log/apache2/microfactory.opensourceecology.org/access.log" combined
+	ErrorLog "/var/log/apache2/microfactory.opensourceecology.org/error.log"
+
+	Include 'conf-available/wordpress.virtualhost.include'
+
+	<Directory "/var/www/html/microfactory.opensourceecology.org/htdocs">
+		Include 'conf-available/wordpress.directory.include'
+		Options +FollowSymLinks
+	</Directory>
+
+</VirtualHost>
+

@@ -1,0 +1,65 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    common.conf
+# Version: 0.1
+# Purpose: Common config options to be included in other awstats config files
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+LogFormat=1
+LogType=W
+DNSLookup=1
+
+# without these, only the main page (not the other dedicated output pages)
+# will be generated https://serverfault.com/questions/407892/awstats-awstats-buildstaticpages-pl-only-builds-1-report-not-full-reports
+ShowMenu=1
+ShowSummary=UVPHB
+ShowMonthStats=UVPHB
+ShowDaysOfMonthStats=VPHB
+ShowDaysOfWeekStats=PHB
+ShowHoursStats=PHB
+ShowDomainsStats=PHB
+ShowHostsStats=PHBL
+ShowAuthenticatedUsers=0
+ShowRobotsStats=HBL
+ShowWormsStats=0
+ShowEMailSenders=0
+ShowEMailReceivers=0
+ShowSessionsStats=1
+ShowPagesStats=PBEX
+ShowFileTypesStats=HB
+ShowFileSizesStats=0
+ShowDownloadsStats=HB
+ShowOSStats=1
+ShowBrowsersStats=1
+ShowScreenSizeStats=0
+ShowOriginStats=PH
+ShowKeyphrasesStats=1
+ShowKeywordsStats=1
+ShowMiscStats=a
+ShowHTTPErrorsStats=1
+ShowHTTPErrorsPageDetail=R
+ShowSMTPErrorsStats=0
+ShowClusterStats=0
+ShowFlagLinks=""
+ShowLinksOnUrl=1
+
+# this is the default debian way
+# the default is /usr/lib/cgi-bin/, which we don't want (better to have it under
+# /var = where our big disk is mounted)
+DirData="/var/lib/awstats"
+
+# resolve ipv6 addresses too
+LoadPlugin="ipv6"
+
+# DNS caching; not sure if we need it, but it was default on in Debian
+LoadPlugin="hashfiles"
+
+# Note that geoip6 also does ipv4 addresses..
+#LoadPlugin="geoip GEOIP_STANDARD /usr/share/GeoIP/GeoIP.dat"
+LoadPlugin="geoip6 GEOIP_STANDARD /usr/share/GeoIP/GeoIPv6.dat"
+LoadPlugin="geoip_city_maxmind GEOIP_STANDARD /usr/share/GeoIP/GeoIPCity.dat"
+

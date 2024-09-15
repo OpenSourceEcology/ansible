@@ -1,0 +1,71 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    www.openbuildinginstitute.org.conf
+# Version: 0.2
+# Purpose: Internet-listening web server for truncating https, basic DOS
+#          protection, and passing to varnish cache (varnish then passes to
+#          apache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-23
+# Updated: 2024-09-14
+################################################################################
+
+server {
+	# redirect the naked domain to 'www'
+	#log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+   #                   '$status $body_bytes_sent "$http_referer" '
+   #                   '"$http_user_agent" "$http_x_forwarded_for"';
+	#access_log /var/log/nginx/www.openbuildinginstitute.org/access.log main;
+	#error_log /var/log/nginx/www.openbuildinginstitute.org/error.log main;
+   include conf.d/secure.include;
+   include conf.d/https.openbuildinginstitute.org.include;
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+	server_name openbuildinginstitute.org;
+	return 301 https://www.openbuildinginstitute.org$uri;
+
+}
+
+server {
+
+	access_log /var/log/nginx/www.openbuildinginstitute.org/access.log main;
+	error_log /var/log/nginx/www.openbuildinginstitute.org/error.log;
+
+   include conf.d/secure.include;
+   include conf.d/https.openbuildinginstitute.org.include;
+
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+
+   server_name www.openbuildinginstitute.org _;
+
+	#############
+	# SITE_DOWN #
+	#############
+	# uncomment this block && restart nginx prior to apache work to display the
+	# "SITE DOWN" webpage for our clients
+
+	#root /var/www/html/SITE_DOWN/htdocs/;
+   #index index.html index.htm;
+
+	# force all requests to load exactly this page
+	#location / {
+	#	try_files $uri /index.html;
+	#}
+
+	###################
+	# SEND TO VARNISH #
+	###################
+
+   location / {
+      proxy_pass http://127.0.0.1:6081;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header Host $host;
+   }
+
+}
+

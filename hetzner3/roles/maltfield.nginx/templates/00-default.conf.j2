@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    00-default.conf
+# Version: 0.1
+# Purpose: Catch requests that come to the ip address, then redirect them to our
+#          main landing page "https://opensourceecology.org"
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+server {
+
+	listen 443;
+	listen [::]:443;
+
+	include conf.d/secure.include;
+	include conf.d/https.opensourceecology.org.include;
+
+	server_name _;
+
+	return 301 https://opensourceecology.org;
+
+}

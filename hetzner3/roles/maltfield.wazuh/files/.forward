@@ -1,0 +1,3 @@
+# {{ ansible_managed }}
+\ossec,
+"|/var/ossec/sent_encrypted_alarm.sh

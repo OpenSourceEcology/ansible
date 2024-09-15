@@ -1,0 +1,7 @@
+---
+- name: install certbot for Let's Encrypt autorenew
+  apt:
+    update_cache: yes
+    pkg:
+      - certbot
+

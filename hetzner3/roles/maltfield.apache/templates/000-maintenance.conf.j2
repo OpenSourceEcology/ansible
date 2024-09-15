@@ -1,0 +1,29 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    000-maintenance.conf
+# Version: 0.1
+# Purpose: vhost of a simple "site currently under maintenance" landing page
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-10
+# Updated: 2024-09-10
+################################################################################
+<VirtualHost *:8000>
+
+	DocumentRoot /var/www/html/SITE_DOWN/htdocs/
+
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+
+	Include 'conf-available/security.virtualhost.include'
+
+	<Directory "/var/www/html/SITE_DOWN/htdocs/">
+		Include 'conf-available/security.directory.include'
+		Options +FollowSymLinks
+	</Directory>
+
+	# redirects everything to "/index.html"
+	RewriteEngine On
+	RewriteRule ^(.*) /index.html
+
+</VirtualHost>

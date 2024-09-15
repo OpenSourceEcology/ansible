@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    local.conf
+# Version: 0.1
+# Purpose: some kernel settings as needed
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+# web servers are apparently inotify-hungry and this needs to be 'upd else
+# a systemd start will fail with error:
+#   "Failed to add watch on /: too many watches"
+# * https://unix.stackexchange.com/questions/13751/kernel-inotify-watch-limit-reached
+#fs.inotify.max_user_watches=8192
+#fs.inotify.max_user_watches=524288
+#fs.inotify.max_user_watches=16384
+fs.inotify.max_user_watches=32768

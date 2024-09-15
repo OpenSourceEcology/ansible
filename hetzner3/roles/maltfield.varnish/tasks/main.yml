@@ -1,0 +1,134 @@
+---
+- name: install varnish
+  apt:
+    update_cache: yes
+    pkg:
+      - varnish
+
+- name: Create /etc/vanish/conf
+  file:
+    dest: /etc/varnish/conf
+    owner: root
+    group: root
+    state: directory
+    mode: 0755
+  notify: restart varnish
+
+- name: Create /etc/vanish/lib
+  file:
+    dest: /etc/varnish/lib
+    owner: root
+    group: root
+    state: directory
+    mode: 0755
+  notify: restart varnish
+
+- name: Create /etc/vanish/sites-enabled
+  file:
+    dest: /etc/varnish/sites-enabled
+    owner: root
+    group: root
+    state: directory
+    mode: 0755
+  notify: restart varnish
+
+- name: varnish systemd config
+  template:
+    src: varnish.service.j2
+    dest: /etc/systemd/system/varnish.service
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify:
+    - reload systemd
+    - restart varnish
+
+- name: varnish main config file (default.vlc)
+  template:
+    src: default.vcl.j2
+    dest: /etc/varnish/default.vcl
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+
+- name: varnish conf/acl.vcl
+  template:
+    src: acl.vcl.j2
+    dest: /etc/varnish/conf/acl.vcl
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+
+- name: varnish lib/purge.vcl
+  template:
+    src: purge.vcl.j2
+    dest: /etc/varnish/lib/purge.vcl
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+
+- name: varnish all-vhosts.vcl
+  template:
+    src: all-vhosts.vcl.j2
+    dest: /etc/varnish/all-vhosts.vcl
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+
+- name: varnish catch-all.vcl
+  template:
+    src: catch-all.vcl.j2
+    dest: /etc/varnish/catch-all.vcl
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+
+- name: create random varnish /etc/varnish/secret
+  copy:
+    dest: /etc/varnish/secret
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+    content: {{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}
+  args:
+    creates: /etc/varnish/secret
+
+#################
+# VIRTUAL HOSTS #
+#################
+
+- name: "varnish {{ item }}.vcl"
+  template:
+    src: "{{ item }}.vcl.j2"
+    dest: "/etc/varnish/sites-enabled/{{ item }}.vcl"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart varnish
+  loop: "{{ virtual_hosts }}"
+
+- name: "varnish conf/purge-key_{{ item }}.vcl"
+  copy:
+    dest: "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+    content: set req.http.X-VC-My-Purge-Key = "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}"
+  args:
+    creates: "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+  notify: restart varnish
+  loop: "{{ virtual_hosts }}"

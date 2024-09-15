@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+SHELL=/bin/bash
+
+# delete xhprof report files older than 30 days
+20 4 * * * root sleep $(( RANDOM \% 3600 )) && find /var/www/html/xhprof-html.opensourceecology.org/reports -iname *.xhprof -mtime +30 -type f -delete

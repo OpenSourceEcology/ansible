@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    acl.vcl
+# Version: 0.1
+# Purpose: Varnish config file. Please see this for more info
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-11
+# Updated: 2024-09-11
+################################################################################
+
+acl purge {
+    "localhost";
+    "127.0.0.1";
+}

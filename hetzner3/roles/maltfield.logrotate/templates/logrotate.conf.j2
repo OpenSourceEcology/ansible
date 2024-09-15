@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    logrotate.conf
+# Version: 0.1
+# Purpose: Main config file for logrotate
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+# see "man logrotate" for details
+# rotate log files daily
+daily
+
+# keep 1 month worth of backlogs
+#rotate 4
+rotate 32
+
+# create new (empty) log files after rotating old ones
+create
+
+# use date as a suffix of the rotated file
+dateext
+
+# uncomment this if you want your log files compressed
+delaycompress
+compress
+
+# packages drop log rotation information into this directory
+include /etc/logrotate.d
+
+# system-specific logs may be also be configured here.

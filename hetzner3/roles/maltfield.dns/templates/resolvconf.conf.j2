@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    resolvconf.conf
+# Version: 0.1
+# Purpose: this config with resolvconf will prevent /etc/resolv.conf from being
+#          updated automatically by other daemons
+#           * https://wiki.debian.org/resolv.conf
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+resolvconf=NO

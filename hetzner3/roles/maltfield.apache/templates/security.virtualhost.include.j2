@@ -1,0 +1,58 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    security.virtualhost.include
+# Version: 0.1
+# Purpose: File includes some common security-hardening that's intended to be
+#          Include()d into other vhost files' <VirtualHost> blocks
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+	# don't execute any php files inside uploads directories
+	<LocationMatch "/wp-content/uploads/">
+		php_flag engine off
+	</LocationMatch>
+	<LocationMatch "/wp-content/uploads/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
+		Require all denied
+	</LocationMatch>
+
+	<LocationMatch "/uploadimages/">
+		php_flag engine off
+	</LocationMatch>
+	<LocationMatch "/uploadimages/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
+		Require all denied
+	</LocationMatch>
+
+	<LocationMatch "/images/">
+		php_flag engine off
+	</LocationMatch>
+	<LocationMatch "/images/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
+		Require all denied
+	</LocationMatch>
+
+	# don't execute php files in W3 Total Cache's tmp dir
+	<LocationMatch "/wp-content/cache/">
+		php_flag engine off
+	</LocationMatch>
+	<LocationMatch "/wp-content/cache/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
+		Require all denied
+	</LocationMatch>
+
+	# block dot (hidden) files
+	<LocationMatch "/\.(?!well\-known)">
+		Require all denied
+	</LocationMatch>
+
+	# block config files
+	<LocationMatch "config.php">
+		Require all denied
+	</LocationMatch>
+
+   # block access to 'wp-login.php' from brute-forcers;
+	# see wp plugin 'rename-wp-login'
+   <LocationMatch ".*wp-login.php">
+		Require all denied
+   </LocationMatch>
+

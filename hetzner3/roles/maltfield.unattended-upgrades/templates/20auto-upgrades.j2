@@ -1,0 +1,14 @@
+// {{ ansible_managed }}
+
+////////////////////////////////////////////////////////////////////////////////
+// File:    20auto-upgrades
+// Version: 0.1
+// Purpose: Config file for unattended-upgrades
+// Author:  Michael Altfield <michael@michaelaltfield.net>
+// Created: 2024-09-14
+// Updated: 2024-09-14
+////////////////////////////////////////////////////////////////////////////////
+
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+

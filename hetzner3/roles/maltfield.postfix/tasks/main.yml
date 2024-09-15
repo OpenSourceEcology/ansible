@@ -1,0 +1,43 @@
+---
+- name: install postfix
+  apt:
+    update_cache: yes
+    pkg:
+      - postfix
+
+- name: generate dh parameters file
+  command: openssl dhparam -out /etc/ssl/certs/dhparam.pem 4096
+  command: chown root:root /etc/ssl/certs/dhparam.pem
+  command: chmod 0400 /etc/ssl/certs/dhparam.pem
+  args:
+    creates: /etc/ssl/certs/dhparam.pem
+
+- name: Whitelisted Domains
+  copy:
+    src: whitelisted_domains
+    dest: /etc/postfix/whitelisted_domains
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: rebuild whitelisted domains
+
+- name: Postfox main.cf
+  copy:
+    src: main.cf
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart postfix
+
+- name: Postfox master.cf
+  copy:
+    src: master.cf
+    dest: /etc/postfix/master.cf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart postfix

@@ -1,0 +1,318 @@
+---
+- name: install apache
+  apt:
+    update_cache: yes
+    pkg:
+      - apache2
+
+# create apache-admins group
+#  * https://wiki.opensourceecology.org/wiki/Maltfield_Log/2018_Q1#Thr_Jan_25.2C_2018
+- name: Add apache-admins group
+  ansible.builtin.group:
+    name: apache-admins
+    state: present
+
+# add apache user to apache-admins group
+- name: Add www-data to apache-admins
+  user:
+    name: www-data
+    groups: apache-admins
+    append: yes
+
+- name: install modsecurity
+  apt:
+    update_cache: yes
+    pkg:
+      - libapache2-mod-security2
+
+- name: modsec tmp dir
+  file:
+    dest: /var/lib/apache2/modsec_tmp
+    owner: www-data
+    group: root
+    state: directory
+    mode: 0700
+  notify: restart apache
+
+- name: modsec data dir
+  file:
+    dest: /var/lib/apache2/modsec_data
+    owner: www-data
+    group: root
+    state: directory
+    mode: 0700
+  notify: restart apache
+
+- name: modsecurity conf
+  template:
+    src: modsecurity.conf.j2
+    dest: /etc/modsecurity/modsecurity.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: remove default apache site
+  file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  notify: restart apache
+
+- name: remove default apache ssl site
+  file:
+    path: /etc/apache2/sites-enabled/default-ssl.conf
+    state: absent
+  notify: restart apache
+
+# we need this for wordpress multisite & permalinks
+- name: enable module = rewrite
+  file:
+    src: /etc/apache2/mods-available/rewrite.load
+    dest: /etc/apache2/mods-enabled/rewrite.load
+    state: link
+  notify: restart apache
+
+- name: enable module = headers
+  file:
+    src: /etc/apache2/mods-available/headers.load
+    dest: /etc/apache2/mods-enabled/headers.load
+    state: link
+  notify: restart apache
+
+# we need this for munin
+- name: status.conf
+  template:
+    src: status.conf.j2
+    dest: /etc/apache2/mods-available/status.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: enable module = status
+  file:
+    src: /etc/apache2/mods-available/status.conf
+    dest: /etc/apache2/mods-enabled/status.conf
+    state: link
+  notify: restart apache
+
+# remoteip will log the correct IP address, not 127.0.0.1 (from nginx or varnish
+# reverse proxies). This is also important for OSSEC and apache "Require ip"
+# lines for security
+
+- name: enable module = remoteip
+  file:
+    src: /etc/apache2/mods-available/remoteip.load
+    dest: /etc/apache2/mods-enabled/remoteip.load
+    state: link
+  notify: restart apache
+
+# pagespeed isn't a magic bullet, but I got some pretty good improvements with
+# this custom config
+
+- name: mods-enabled/pagespeed.conf
+  template:
+    src: pagespeed.conf.j2
+    dest: /etc/apache2/mods-available/pagespeed.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: security.conf
+  template:
+    src: security.conf.j2
+    dest: /etc/apache2/conf-available/security.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: conf-enabled/security.conf
+  file:
+    src: /etc/apache2/conf-available/security.conf
+    dest: /etc/apache2/conf-enabled/security.conf
+    state: link
+  notify: restart apache
+
+# tune resource usage with mpm
+- name: enable module = mpm_prefork
+  file:
+    src: /etc/apache2/mods-available/mpm_prefork.load
+    dest: /etc/apache2/mods-enabled/mpm_prefork.load
+    state: link
+  notify: restart apache
+
+- name: mpm_prefork.conf
+  template:
+    src: mpm_prefork.conf.j2
+    dest: /etc/apache2/mods-available/mpm_prefork.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: mpm_prefork config symlink
+  file:
+    src: /etc/apache2/mods-available/mpm_prefork.conf
+    dest: /etc/apache2/mods-enabled/mpm_prefork.conf
+    state: link
+  notify: restart apache
+
+# prod mode config
+- name: main apache4_prod.conf
+  template:
+    src: apache2.conf.j2
+    dest: /etc/apache2/apache2_prod.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+# maintenance mode config
+- name: apache2_maint.conf (apache2.conf but maintenance mode)
+  template:
+    src: apache2.conf.j2
+    dest: /etc/apache2/apache2_maint.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+# replace the line that `Include`s all the '/sites-enabled/*.conf' files with
+# a line that includes just one "maintenance.conf" vhost file,
+# effectively making all our vhosts display a simple "maintenance" page
+# when the apache2.conf symlink points to apache2_maint.conf
+# 
+# for more info, see /usr/local/bin/website_maintance.sh
+- name: create apache2_maint.conf from apache2_prod.conf, except only one vhost is included
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/apache2_maint.conf
+    regexp: '^IncludeOptional sites-enabled'
+    line: IncludeOptional sites-available/000-maintenance.conf
+
+- name: And the actual vhost for maintenance mode
+  template:
+    src: 000-maintenance.conf.j2
+    dest: /etc/apache2/sites-available/000-maintenance.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: symlink "apache2.conf" to our "_prod" config
+  file:
+    src: "/etc/apache2/apache2_prod.conf"
+    dest: "/etc/apache2/apache2.conf"
+    owner: root
+    group: root
+    state: link
+  notify: restart apache
+
+- name: apache ports.conf
+  template:
+    src: ports.conf.j2
+    dest: /etc/apache2/ports.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: security.directory.include - generic hardened contents for <Directory ...> blocks
+  template:
+    src: security.directory.include.j2
+    dest: /etc/apache2/conf-available/security.directory.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: security.virtualhost.include - generic hardened contents for <VirtualHost ...> blocks
+  template:
+    src: security.virtualhost.include.j2
+    dest: /etc/apache2/conf-available/security.virtualhost.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: wordpress.virtualhost.include - common wordpress config for <VirtualHost ...> blocks
+  template:
+    src: wordpress.virtualhost.include.j2
+    dest: /etc/apache2/conf-available/wordpress.virtualhost.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: phplist.virtualhost.include - common phplist config for <VirtualHost ...> blocks
+  template:
+    src: phplist.virtualhost.include.j2
+    dest: /etc/apache2/conf-available/phplist.virtualhost.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+#################
+# VIRTUAL HOSTS #
+#################
+
+- name: "Create /var/log/apache2/{{ item }}"
+  file:
+    dest: "/var/log/apache2/{{ item }}"
+    owner: root
+    group: adm
+    state: directory
+    mode: 0750
+  loop: "{{ virtual_hosts }}"
+
+- name: "sites-available/{{ item }}.conf"
+  template:
+    src: "{{ item }}.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+  loop: "{{ virtual_hosts }}"
+
+- name: "sites-enabled/{{ item }}.conf"
+  file:
+    src: "/etc/apache2/sites-available/{{ item }}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ item }}.conf"
+    owner: root
+    group: root
+    state: link
+  notify: restart apache
+  loop: "{{ virtual_hosts }}"
+
+# default vhost
+- name: replace default vhost symlink
+  file:
+    path: "/etc/apache2/sites-enabled/{{ default_vhost }}.conf"
+    state: absent
+  notify: restart apache
+
+- name: default vhost symlink prepended with '00-'
+  file:
+    src: "/etc/apache2/sites-available/{{ default_vhost }}.conf"
+    dest: "/etc/apache2/sites-enabled/00-{{ default_vhost }}.conf"
+    owner: root
+    group: root
+    state: link
+  notify: restart apache

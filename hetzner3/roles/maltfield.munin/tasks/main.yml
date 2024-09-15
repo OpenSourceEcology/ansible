@@ -1,0 +1,215 @@
+---
+- name: install munin and plugins
+  apt:
+    update_cache: yes
+    pkg:
+      - munin
+      - munin-node
+      - munin-plugins-core
+      - munin-plugins-extra
+
+- name: install munin plugin depends
+  apt:
+    update_cache: yes
+    pkg:
+      - liblwp-protocol-https-perl
+      - libcache-perl
+      - libcache-cache-perl
+      - libdbd-mysql-perl
+      - libxml-parser-perl
+
+- name: munin mysql_ plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_
+    dest: /etc/munin/plugins/mysql_
+    state: link
+  notify: restart munin
+
+- name: munin mysql_bytes plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_bytes
+    dest: /etc/munin/plugins/mysql_bytes
+    state: link
+  notify: restart munin
+
+- name: munin mysql_innodb plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_innodb
+    dest: /etc/munin/plugins/mysql_innodb
+    state: link
+  notify: restart munin
+
+- name: munin mysql_isam_space_ plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_isam_space_
+    dest: /etc/munin/plugins/mysql_isam_space_
+    state: link
+  notify: restart munin
+
+- name: munin mysql_queries plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_queries
+    dest: /etc/munin/plugins/mysql_queries
+    state: link
+  notify: restart munin
+
+- name: munin mysql_slowqueries plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_slowqueries
+    dest: /etc/munin/plugins/mysql_slowqueries
+    state: link
+  notify: restart munin
+
+- name: munin mysql_threads plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_threads
+    dest: /etc/munin/plugins/mysql_threads
+    state: link
+  notify: restart munin
+
+- name: munin nginx_request plugin
+  file:
+    src: /usr/share/munin/plugins/nginx_request
+    dest: /etc/munin/plugins/nginx_request
+    state: link
+  notify: restart munin
+
+- name: munin nginx_status plugin
+  file:
+    src: /usr/share/munin/plugins/nginx_status
+    dest: /etc/munin/plugins/nginx_status
+    state: link
+  notify: restart munin
+
+- name: munin multips_memory plugin
+  file:
+    src: /usr/share/munin/plugins/multips_memory
+    dest: /etc/munin/plugins/multips_memory
+    state: link
+  notify: restart munin
+
+- name: munin ps_ plugin
+  file:
+    src: /usr/share/munin/plugins/ps_
+    dest: /etc/munin/plugins/ps_
+    state: link
+  notify: restart munin
+
+- name: munin varnish5_ plugin
+  template:
+    src: varnish5_
+    dest: /usr/share/munin/plugins/varnish5_
+    owner: root
+    group: root
+    mode: 0755
+    backup: yes
+  notify: restart munin
+
+- name: munin varnish_objects plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_objects
+    state: link
+  notify: restart munin
+
+- name: munin varnish_hit_rate plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_hit_rate
+    state: link
+  notify: restart munin
+
+- name: munin varnish_transfer_rate plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_transfer_rate
+    state: link
+  notify: restart munin
+
+- name: munin varnish_uptime plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_uptime
+    state: link
+  notify: restart munin
+
+- name: munin varnish_threads plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_threads
+    state: link
+  notify: restart munin
+
+- name: munin varnish_bad plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_bad
+    state: link
+  notify: restart munin
+
+- name: munin varnish_backend_traffic plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_backend_traffic
+    state: link
+  notify: restart munin
+
+- name: munin varnish_request_rate plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_request_rate
+    state: link
+  notify: restart munin
+
+- name: munin varnish_memory_usage plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_memory_usage
+    state: link
+  notify: restart munin
+
+- name: munin varnish_expunge plugin
+  file:
+    src: /usr/share/munin/plugins/varnish5_
+    dest: /etc/munin/plugins/varnish_expunge
+    state: link
+  notify: restart munin
+
+- name: munin apache_accesses plugin
+  file:
+    src: /usr/share/munin/plugins/apache_accesses
+    dest: /etc/munin/plugins/apache_accesses
+    state: link
+  notify: restart munin
+
+- name: munin apache_processes plugin
+  file:
+    src: /usr/share/munin/plugins/apache_processes
+    dest: /etc/munin/plugins/apache_processes
+    state: link
+  notify: restart munin
+
+- name: munin apache_volume plugin
+  file:
+    src: /usr/share/munin/plugins/apache_volume
+    dest: /etc/munin/plugins/apache_volume
+    state: link
+  notify: restart munin
+
+- name: munin proc plugin
+  file:
+    src: /usr/share/munin/plugins/proc
+    dest: /etc/munin/plugins/proc
+    state: link
+  notify: restart munin
+
+- name: mariadb plugins config
+  template:
+    src: zzz-myconf.j2
+    dest: /etc/munin/plugin-conf.d/zzz-myconf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart munin
+

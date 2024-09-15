@@ -1,0 +1,24 @@
+- name: logrotate.conf
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+
+- name: ose custom logrotate configs
+  template:
+    src: ose.j2
+    dest: /etc/logrotate.d/ose
+    owner: root
+    group: root
+    mode: 0644
+
+- name: rsyslog logrotate configs
+  template:
+    src: rsyslog_logrotate.j2
+    dest: /etc/logrotate.d/rsyslog
+    owner: root
+    group: root
+    mode: 0644

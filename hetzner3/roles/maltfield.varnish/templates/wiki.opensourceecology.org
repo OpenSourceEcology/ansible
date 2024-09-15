@@ -1,0 +1,212 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    wiki.opensourceecology.org.vcl
+# Version: 0.4
+# Purpose: Confg file for ose's mediawiki site
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-03-14
+# Updated: 2024-09-13
+################################################################################
+
+vcl 4.0;
+
+##########################
+# VHOST-SPECIFIC BACKEND #
+##########################
+
+backend wiki_opensourceecology_org {
+	.host = "127.0.0.1";
+	.port = "8000";
+}
+
+#################################################################################
+#       STUFF MOSTLY COPIED FROM MEDIAWIKI'S Manual:Varnish_caching GUIDE       #
+# https://www.mediawiki.org/wiki/Manual:Varnish_caching#Configuring_Varnish_4.x #
+#################################################################################
+
+sub vcl_recv {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		set req.backend_hint = wiki_opensourceecology_org;
+
+		# Serve objects up to 2 minutes past their expiry if the backend
+  		# is slow to respond.
+  		# set req.grace = 120s;
+  		set req.http.X-Forwarded-For = client.ip;
+
+  		# This uses the ACL action called "purge". Basically if a request to
+		# PURGE the cache comes from anywhere other than localhost, ignore it.
+  		if (req.method == "PURGE") {
+  			if (!client.ip ~ purge) {
+  				return (synth(405, "Not allowed."));
+  			} else {
+  				return (purge);
+  			}
+  		}
+
+  		# Pass any requests that Varnish does not understand straight to the backend.
+  		if (
+	 	req.method != "GET" && req.method != "HEAD" &&
+  	 	req.method != "PUT" && req.method != "POST" &&
+  	 	req.method != "TRACE" && req.method != "OPTIONS" &&
+  	 	req.method != "DELETE"
+		) {
+  			return (pipe);
+  		} /* Non-RFC2616 or CONNECT which is weird. */
+
+  		# Pass anything other than GET and HEAD directly.
+  		if (req.method != "GET" && req.method != "HEAD") {
+  			return (pass);
+  		}      /* We only deal with GET and HEAD by default */
+
+  		# Pass requests from logged-in users directly.
+  		# Only detect cookies with "session" and "Token" in file name, otherwise nothing get cached.
+  		if (req.http.Authorization || req.http.Cookie ~ "session" || req.http.Cookie ~ "Token") {
+  			return (pass);
+  		} /* Not cacheable by default */
+
+  		# Pass any requests with the "If-None-Match" header directly.
+  		if (req.http.If-None-Match) {
+  			return (pass);
+  		}
+
+  		# Force lookup if the request is a no-cache request from the client.
+  		if (req.http.Cache-Control ~ "no-cache") {
+  			ban(req.url);
+  		}
+
+  		# normalize Accept-Encoding to reduce vary
+  		if (req.http.Accept-Encoding) {
+  			if (req.http.User-Agent ~ "MSIE 6") {
+  				unset req.http.Accept-Encoding;
+  			} elsif (req.http.Accept-Encoding ~ "gzip") {
+  				set req.http.Accept-Encoding = "gzip";
+  			} elsif (req.http.Accept-Encoding ~ "deflate") {
+  				set req.http.Accept-Encoding = "deflate";
+  			} else {
+  				unset req.http.Accept-Encoding;
+  			}
+  		}
+
+  		return (hash);
+
+	}
+
+}
+
+sub vcl_hash {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		# TODO
+
+	}
+}
+
+sub vcl_backend_response {
+
+	if ( beresp.backend.name == "wiki_opensourceecology_org" ){
+
+		# set minimum timeouts to auto-discard stored objects
+		set beresp.grace = 120s;
+
+		if (beresp.ttl < 48h) {
+			set beresp.ttl = 48h;
+		}       
+
+		# Avoid caching error responses
+		if ( beresp.status != 200 && beresp.status != 203 && beresp.status != 300 && beresp.status != 301 && beresp.status != 302 && beresp.status != 304 && beresp.status != 307 && beresp.status != 410 && beresp.status != 404 ) {
+			set beresp.ttl   = 0s;
+			set beresp.grace = 15s;
+			return (deliver);
+		}
+
+		if (!beresp.ttl > 0s) {
+			set beresp.uncacheable = true;
+			return (deliver);
+		}
+
+		if (beresp.http.Set-Cookie) {
+			set beresp.uncacheable = true;
+			return (deliver);
+		}
+
+#		if (beresp.http.Cache-Control ~ "(private|no-cache|no-store)") {
+#			set beresp.uncacheable = true;
+#			return (deliver);
+#		}
+ 
+		if (beresp.http.Authorization && !beresp.http.Cache-Control ~ "public") {
+			set beresp.uncacheable = true;
+			return (deliver);
+		}
+
+		return (deliver);
+
+	}
+
+}
+
+sub vcl_synth {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		# TODO
+
+	}
+
+}
+
+sub vcl_pipe {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		# Note that only the first request to the backend will have
+		# X-Forwarded-For set.  If you use X-Forwarded-For and want to
+		# have it set for all requests, make sure to have:
+		# set req.http.connection = "close";
+ 
+		# This is otherwise not necessary if you do not do any request rewriting.
+ 
+		#set req.http.connection = "close";
+
+	}
+}
+
+sub vcl_hit {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		if (req.method == "PURGE") {
+			ban(req.url);
+			return (synth(200, "Purged"));
+		}
+
+		if (!obj.ttl > 0s) {
+			return (pass);
+		}
+
+	}
+}
+
+sub vcl_miss {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		if (req.method == "PURGE")  {
+			return (synth(200, "Not in cache"));
+		}
+
+	}
+}
+
+sub vcl_deliver {
+
+	if ( req.http.host == "wiki.opensourceecology.org" ){
+
+		# TODO
+
+	}
+}

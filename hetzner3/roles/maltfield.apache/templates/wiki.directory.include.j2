@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    wiki.directory.include
+# Version: 0.1
+# Purpose: File includes some common config options that are intended to be
+#          Include()d into other MediaWiki vhost files' <Directory> blocks
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+	Include 'conf-available/security.directory.include'

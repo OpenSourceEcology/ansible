@@ -1,0 +1,36 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+################################################################################
+# File:    sent_encrypted_alarm.sh.j2
+# Version: 0.3
+# Purpose: Send encrypted email alerts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-07-10
+# Updated: 2024-09-14
+################################################################################
+
+############
+# SETTINGS #
+############
+
+source /var/ossec/sent_encrypted_alarm.settings
+
+#############
+# MAIN BODY #
+#############
+
+# store the would-be plaintext email body
+plaintext=`/usr/bin/formail -I ""`
+
+# loop through all recipients & send them individually-encrypted mail
+for recipient in ${EMAIL_LIST}; do
+
+        # leave nothing unencrypted, including the subject!
+        echo "${plaintext}" | /usr/bin/gpg --homedir /var/ossec/.gnupg --trust-model always -ear "${recipient}" | /usr/bin/mail -r noreply@opensourceecology.org -s "" "${recipient}"
+        #echo "this is just a test" | /usr/bin/gpg --homedir /var/ossec/.gnupg --trust-model always -ear "${recipient}" | /usr/bin/mail -r noreply@opensourceecology.org -s "ossec" "${recipient}"
+
+done
+
+# clean exit
+exit 0

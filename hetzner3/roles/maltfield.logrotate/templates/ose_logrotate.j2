@@ -1,0 +1,82 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    ose_logrotate
+# Version: 0.1
+# Purpose: OSE's logrotate config
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+/var/log/backups/*log /var/log/phplist/*log /var/log/cron/*log {
+	daily
+	rotate 180
+	missingok
+	notifempty
+	delaycompress
+	compress
+	maxsize 100M
+	dateext
+}
+
+/var/log/mail/*log /var/log/mail/*/*log {
+	monthly
+	rotate 24
+	missingok
+	notifempty
+	compress
+	maxsize 10M
+	dateext
+}
+
+/var/log/atop/*[!.][!g][!z] {
+	daily
+	rotate 7
+	missingok
+	notifempty
+	compress
+	maxsize 10M
+	dateext
+}
+
+/var/log/apache2/*/*.log {
+        daily
+        missingok
+        rotate 10
+        compress
+        delaycompress
+        notifempty
+        create 640 root adm
+        sharedscripts
+        postrotate
+                if invoke-rc.d apache2 status > /dev/null 2>&1; then \
+                    invoke-rc.d apache2 reload > /dev/null 2>&1; \
+                fi;
+        endscript
+        prerotate
+                if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
+                        run-parts /etc/logrotate.d/httpd-prerotate; \
+                fi; \
+        endscript
+}
+
+/var/log/nginx/*/*.log {
+        daily
+        missingok
+        rotate 10
+        compress
+        delaycompress
+        notifempty
+        create 0640 www-data adm
+        sharedscripts
+        prerotate
+                if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
+                        run-parts /etc/logrotate.d/httpd-prerotate; \
+                fi \
+        endscript
+        postrotate
+                invoke-rc.d nginx rotate >/dev/null 2>&1
+        endscript
+}
+

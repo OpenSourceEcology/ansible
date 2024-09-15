@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    all-vhosts.vcl
+# Version: 1.8
+# Purpose: meta config file that simply imports the site-specific vcl files
+#          stored in the 'sites-enabled' directory Please see this for more info
+#            * https://www.getpagespeed.com/server-setup/varnish/varnish-virtual-hosts
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2017-11-12
+# Updated: 2024-09-11
+################################################################################
+
+{% for vhost in virtual_hosts %}
+include "sites-enabled/{{ vhost }}.vcl";
+{% endfor %}

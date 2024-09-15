@@ -1,0 +1,63 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    awstats.opensourceecology.org.conf
+# Version: 0.4
+# Purpose: Internet-listening web server for truncating https, basic DOS
+#          protection, and passing to varnish cache (varnish then passes to
+#          apache)
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-02-08
+# Updated: 2024-08-14
+################################################################################
+
+server {
+
+	# 443 is just for Let's Encrypt
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
+
+   server_name awstats.opensourceecology.org;
+   server_name ~^(?<subdomain>[^\.]+)\.(?<domain>.+)$;
+
+	access_log /var/log/nginx/awstats.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/awstats.opensourceecology.org/error.log;
+
+	include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+	root /var/www/html/certbot/htdocs;
+	disable_symlinks off;
+
+}
+
+server {
+
+	# 4443 is where we put our private sites
+   listen {{ ansible_default_ipv4.address }}:4443;
+   listen [{{ ansible_default_ipv6.address }}]:4443;
+
+   server_name awstats.opensourceecology.org;
+   server_name ~^(?<subdomain>[^\.]+)\.(?<domain>.+)$;
+
+	access_log /var/log/nginx/awstats.opensourceecology.org/access.log main;
+	error_log /var/log/nginx/awstats.opensourceecology.org/error.log;
+
+	include conf.d/secure.include;
+   include conf.d/https.opensourceecology.org.include;
+
+	server_name awstats.michaelaltfield.net;
+
+	location ^~ /icon {
+		alias /usr/share/awstats/icon/;
+	}
+
+	root /var/cache/awstats/;
+	disable_symlinks off;
+	autoindex on;
+	index index.html index.htm index.en.html;
+
+	auth_basic "auth required";
+	auth_basic_user_file /var/www/html/.htpasswd;
+
+}

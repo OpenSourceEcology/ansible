@@ -1,0 +1,30 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    wiki.opensourceecology.org.conf
+# Version: 1.5
+# Purpose: localhost-only-listening, http-only, name-based-vhost for serving
+#          traffic to varnish
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2018-01-20
+# Updated: 2024-09-11
+################################################################################
+
+<VirtualHost 127.0.0.1:8000>
+	ServerName wiki.opensourceecology.org
+	DocumentRoot "/var/www/html/wiki.opensourceecology.org/htdocs"
+
+	Alias /wiki /var/www/html/wiki.opensourceecology.org/htdocs/index.php
+
+	CustomLog "/var/log/apache2/wiki.opensourceecology.org/access.log" combined
+	ErrorLog "/var/log/apache2/wiki.opensourceecology.org/error.log"
+
+	Include 'conf-available/wiki.virtualhost.include'
+
+	<Directory "/var/www/html/wiki.opensourceecology.org/htdocs">
+		Include 'conf-available/wiki.directory.include'
+		Options +FollowSymLinks
+	</Directory>
+
+</VirtualHost>
+

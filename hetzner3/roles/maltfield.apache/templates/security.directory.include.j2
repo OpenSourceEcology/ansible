@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+
+################################################################################
+# File:    security.directory.include
+# Version: 0.1
+# Purpose: File includes some common security-hardening that's intended to be
+#          Include()d into other vhost files' <Directory> blocks
+# Author:  Michael Altfield <michael@michaelaltfield.net>
+# Created: 2024-09-14
+# Updated: 2024-09-14
+################################################################################
+
+	#Options -Indexes -Includes
+	Options None
+	AllowOverride None
+
+	# we can't do this when using mod_remoteip
+	#Require ip 127.0.0.1
+
+	# Harden vhost docroot by blocking all request types except the 3 essentials
+	# Note: The debian wiki actually says not to use this since it can result in
+	#       disabling auth modules, so be careful
+	#        * https://wiki.debian.org/Apache/Hardening
+	<LimitExcept GET POST HEAD>
+		Require all denied
+	</LimitExcept>

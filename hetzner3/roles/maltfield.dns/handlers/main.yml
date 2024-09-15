@@ -1,0 +1,7 @@
+- name: restart stubby
+  service: name=stubby.service state=restarted
+  become: yes
+
+- name: restart unbound
+  service: name=unbound.service state=restarted
+  become: yes
