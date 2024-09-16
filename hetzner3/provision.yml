@@ -20,10 +20,10 @@
       - ncdu
 
   roles:
-#    - dev-sec.ssh-hardening
+    - dev-sec.ssh-hardening
 #    - mikegleasonjr.firewall
 #    - maltfield.postfix
-#    - maltfield.wazuh
+    - maltfield.wazuh
 #    - maltfield.unattended-upgrades
 #    - maltfield.kernel
 #    - maltfield.dns
@@ -36,7 +36,7 @@
 #    - maltfield.munin
 #    - maltfield.awstats
 #    - maltfield.certbot
-    - maltfield.backups
+#    - maltfield.backups
 #    - maltfield.cron
 #    - maltfield.logrotate
 
@@ -48,6 +48,7 @@
     ssh_server_ports: ['32415']
     ssh_allow_groups: 'sshaccess'
     ssh_allow_tcp_forwarding: 'yes'
+    ssh_allow_agent_forwarding: 'yes'
     ssh_listen_to: ["{{ ansible_default_ipv4.address }}"]
     ssh_ciphers:
       - chacha20-poly1305@openssh.com
