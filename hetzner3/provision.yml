@@ -21,12 +21,12 @@
 
   roles:
 #    - dev-sec.ssh-hardening
-    - mikegleasonjr.firewall
-#    - maltfield.postfix
-#    - maltfield.wazuh
+#    - mikegleasonjr.firewall
+    - maltfield.postfix
+    - maltfield.wazuh
 #    - maltfield.unattended-upgrades
 #    - maltfield.kernel
-    - maltfield.dns
+#    - maltfield.dns
 #    - maltfield.locale
 #    - maltfield.nginx
 #    - maltfield.varnish

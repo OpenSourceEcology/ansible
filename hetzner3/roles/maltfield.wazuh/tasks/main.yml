@@ -49,8 +49,8 @@
   notify: restart wazuh-manager
 
 - name: email encryption .forward file
-  copy:
-    src: .forward
+  template:
+    src: .forward.j2
     dest: /var/ossec/.forward
     owner: root
     group: root
