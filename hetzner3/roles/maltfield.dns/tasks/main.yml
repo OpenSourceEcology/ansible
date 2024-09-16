@@ -36,7 +36,7 @@
 
 - name: /etc/unbound/unbound.conf.d/ose.conf
   template:
-    src: ose.conf.j2
+    src: ose_unbound.conf.j2
     dest: /etc/unbound/unbound.conf.d/ose.conf
     owner: root
     group: root

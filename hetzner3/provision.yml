@@ -22,7 +22,7 @@
   roles:
 #    - dev-sec.ssh-hardening
     - mikegleasonjr.firewall
-    - maltfield.postfix
+#    - maltfield.postfix
 #    - maltfield.wazuh
 #    - maltfield.unattended-upgrades
 #    - maltfield.kernel
@@ -90,8 +90,8 @@
         - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
       841 allow stubby:
         - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
-      842 allow tor:
-        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
+#      842 allow tor:
+#        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
 #      843 allow mon:
 #        - -A OUTPUT -m owner --uid-owner mon -j ACCEPT
       990 log before drop:
@@ -133,8 +133,8 @@
         - -A OUTPUT -m owner --uid-owner postfix -j ACCEPT
       841 allow stubby:
         - -A OUTPUT -m owner --uid-owner stubby -j ACCEPT
-      842 allow tor:
-        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
+#      842 allow tor:
+#        - -A OUTPUT -m owner --uid-owner debian-tor -j ACCEPT
 #      843 allow mon:
 #        - -A OUTPUT -m owner --uid-owner mon -j ACCEPT
       990 log before drop:
