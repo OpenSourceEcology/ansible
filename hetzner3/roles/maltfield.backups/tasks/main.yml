@@ -3,6 +3,7 @@
   apt:
     update_cache: yes
     pkg:
+      - backblaze-b2
       - rclone
       - gpg
       - pigz
