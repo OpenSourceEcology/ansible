@@ -5,8 +5,8 @@ set -x
 ################################################################################
 # Author:  Michael Altfield <michael at opensourceecology dot org>
 # Created: 2017-06-20
-# Updated: 2024-08-05
-# Version: 0.7
+# Updated: 2024-09-22
+# Version: 0.8
 # Purpose: Creates a compressed backup of DBs, webserver files, and config files
 ################################################################################
 
@@ -88,27 +88,27 @@ echo "INFO: Beginning to backup server's files"
 # /etc/
 echo -e "\tINFO: /etc"
 $MKDIR "${backupDirPath}/${archiveDirName}/etc"
-time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/etc/etc.${stamp}.tar.gz /etc/*
+time $NICE $TAR --use-compress-program=pigz -cf ${backupDirPath}/${archiveDirName}/etc/etc.${stamp}.tar.gz /etc/*
 
 # /home/
 echo -e "\tINFO: /home"
 $MKDIR "${backupDirPath}/${archiveDirName}/home"
-time $NICE $TAR --use-compress-program=pigz --exclude "${b2StagingDir}*" -czf ${backupDirPath}/${archiveDirName}/home/home.${stamp}.tar.gz /home/*
+time $NICE $TAR --use-compress-program=pigz --exclude "${b2StagingDir}*" -cf ${backupDirPath}/${archiveDirName}/home/home.${stamp}.tar.gz /home/*
 
 # /var/log/
 echo -e "\tINFO: /var/log"
 $MKDIR "${backupDirPath}/${archiveDirName}/log"
-time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/log/log.${stamp}.tar.gz /var/log/*
+time $NICE $TAR --use-compress-program=pigz -cf ${backupDirPath}/${archiveDirName}/log/log.${stamp}.tar.gz /var/log/*
 
 # /root/
 echo -e "\tINFO: /root"
 $MKDIR "${backupDirPath}/${archiveDirName}/root"
-time $NICE $TAR --use-compress-program=pigz --exclude "${backupDirPath}*" -czf ${backupDirPath}/${archiveDirName}/root/root.${stamp}.tar.gz /root/*
+time $NICE $TAR --use-compress-program=pigz --exclude "${backupDirPath}*" -cf ${backupDirPath}/${archiveDirName}/root/root.${stamp}.tar.gz /root/*
 
 # /var/www/
 echo -e "\tINFO: /var/www"
 $MKDIR "${backupDirPath}/${archiveDirName}/www"
-time $NICE $TAR --use-compress-program=pigz -czf ${backupDirPath}/${archiveDirName}/www/www.${stamp}.tar.gz /var/www/*
+time $NICE $TAR --use-compress-program=pigz -cf ${backupDirPath}/${archiveDirName}/www/www.${stamp}.tar.gz /var/www/*
 
 ###########
 # ENCRYPT #
