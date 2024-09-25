@@ -5,7 +5,8 @@
     pkg:
       - php-fpm
       - php-apcu
-  notify: restart apache
+  notify:
+    - restart php-fpm
 
 - name: install php extensions/modules
   apt:
@@ -15,19 +16,22 @@
       - php-gd
       - php-mysql
       - php-tideways
-  notify: restart apache
+  notify:
+    - restart php-fpm
 
 - name: install pear Text_CAPTCHA module
   pear:
     name: Text_CAPTCHA
-  notify: restart apache
+  notify:
+    - restart php-fpm
 
 # we have to say '-beta' or it won't install
 # https://stackoverflow.com/questions/6780536/failed-to-download-pear-http-request2-within-preferred-state-stable
 - name: install pear Image_Text module
   pear:
     name: Image_Text-beta
-  notify: restart apache
+  notify:
+    - restart php-fpm
 
 - name: php tmp dir
   file:
@@ -53,4 +57,5 @@
     group: root
     mode: 0644
     backup: yes
-  notify: restart apache
+  notify:
+    - restart php-fpm

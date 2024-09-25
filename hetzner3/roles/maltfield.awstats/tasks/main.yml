@@ -5,7 +5,7 @@
     pkg:
       - awstats
       - geoip-database
-      - geoip-database-extra
+#      - geoip-database-extra
       - libgeo-ip-perl
       - libgeo-ipfree-perl
       - libnet-dns-perl
@@ -43,14 +43,3 @@
     group: root
     mode: 0644
     backup: yes
-
-# this fixes a bug in Debian where the logrotate rule never actually triggers
-# awstats to run using `run-parts` because [a] the script is in a dir and
-# run-parts won't look inside dirs recursively and [b] the script has a dot in
-# its name so run-parts ignores it
-#  * https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890414
-- name: enabe module = headers
-  file:
-    src: /etc/logrotate.d/httpd-prerotate/awstats/prerotate.sh
-    dest: /etc/logrotate.d/httpd-prerotate/awstats-prerotate
-    state: link

@@ -9,8 +9,8 @@
 
 - name: ose custom logrotate configs
   template:
-    src: ose.j2
-    dest: /etc/logrotate.d/ose
+    src: ose_logrotate.j2
+    dest: /etc/logrotate.d/ose_logrotate
     owner: root
     group: root
     mode: 0644
