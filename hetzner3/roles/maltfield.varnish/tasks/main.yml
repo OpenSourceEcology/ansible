@@ -94,16 +94,12 @@
     backup: yes
   notify: restart varnish
 
-- name: create random varnish /etc/varnish/secret
-  copy:
-    dest: /etc/varnish/secret
-    owner: root
-    group: root
-    mode: 0644
-    backup: yes
-    content: {{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}
+- name: generate random varnish /etc/varnish/secret
+  command: echo "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}" > /etc/varnish/secret
+  command: chown root:root /etc/ssl/certs/dhparam.pem
+  command: chmod 0600 /etc/ssl/certs/dhparam.pem
   args:
-    creates: /etc/varnish/secret
+    creates: "/etc/varnish/secret"
 
 #################
 # VIRTUAL HOSTS #
@@ -121,13 +117,10 @@
   loop: "{{ virtual_hosts }}"
 
 - name: "varnish conf/purge-key_{{ item }}.vcl"
-  copy:
-    dest: "/etc/varnish/conf/purge-key_{{ item }}.vcl"
-    owner: root
-    group: root
-    mode: 0644
-    backup: yes
-    content: set req.http.X-VC-My-Purge-Key = "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}"
+  shell: |
+    echo "set req.http.X-VC-My-Purge-Key = \"{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}\"" > "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+    chown root:root "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+    chmod 0600 "/etc/varnish/conf/purge-key_{{ item }}.vcl"
   args:
     creates: "/etc/varnish/conf/purge-key_{{ item }}.vcl"
   notify: restart varnish

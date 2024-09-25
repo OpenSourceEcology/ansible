@@ -29,16 +29,16 @@
 #    - maltfield.dns
 #    - maltfield.locale
 #    - maltfield.nginx
-#    - maltfield.varnish
-#    - maltfield.php
-#    - maltfield.mariadb
-#    - maltfield.apache
-#    - maltfield.munin
-#    - maltfield.awstats
-#    - maltfield.certbot
+    - maltfield.varnish
+    - maltfield.php
+    - maltfield.mariadb
+    - maltfield.apache
+    - maltfield.munin
+    - maltfield.awstats
+    - maltfield.certbot
     - maltfield.backups
-#    - maltfield.cron
-#    - maltfield.logrotate
+    - maltfield.cron
+    - maltfield.logrotate
 
   vars:
 
@@ -76,11 +76,11 @@
         - -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
       200 allow ssh:
         - -A INPUT -p tcp -m state --state NEW -m tcp --dport 32415 -j ACCEPT
-#      210 allow web server traffic:
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
+      210 allow web server traffic:
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
       810 allow root:
         - -A OUTPUT -m owner --uid-owner root -j ACCEPT
       820 allow apt:
@@ -119,11 +119,11 @@
       100 allow established related:
         - -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
         - -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-#      210 allow web server traffic:
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
-#        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
+      210 allow web server traffic:
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4443 -j ACCEPT
+        - -A INPUT -p tcp -m state --state NEW -m tcp --dport 4444 -j ACCEPT
       810 allow root:
         - -A OUTPUT -m owner --uid-owner root -j ACCEPT
       820 allow apt:
