@@ -28,17 +28,17 @@
 #    - maltfield.kernel
 #    - maltfield.dns
 #    - maltfield.locale
-#    - maltfield.nginx
-    - maltfield.varnish
-    - maltfield.php
-    - maltfield.mariadb
-    - maltfield.apache
-    - maltfield.munin
-    - maltfield.awstats
-    - maltfield.certbot
-    - maltfield.backups
-    - maltfield.cron
-    - maltfield.logrotate
+    - maltfield.nginx
+#    - maltfield.varnish
+#    - maltfield.php
+#    - maltfield.mariadb
+#    - maltfield.apache
+#    - maltfield.munin
+#    - maltfield.awstats
+#    - maltfield.certbot
+#    - maltfield.backups
+#    - maltfield.cron
+#    - maltfield.logrotate
 
   vars:
 

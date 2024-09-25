@@ -139,30 +139,30 @@
     state: link
   notify: restart apache
 
-# tune resource usage with mpm
-- name: enable module = mpm_prefork
-  file:
-    src: /etc/apache2/mods-available/mpm_prefork.load
-    dest: /etc/apache2/mods-enabled/mpm_prefork.load
-    state: link
-  notify: restart apache
-
-- name: mpm_prefork.conf
-  template:
-    src: mpm_prefork.conf.j2
-    dest: /etc/apache2/mods-available/mpm_prefork.conf
-    owner: root
-    group: root
-    mode: 0644
-    backup: yes
-  notify: restart apache
-
-- name: mpm_prefork config symlink
-  file:
-    src: /etc/apache2/mods-available/mpm_prefork.conf
-    dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-    state: link
-  notify: restart apache
+# we're using mpm_event, the default in Debian 12 with Apache 2.4
+#- name: enable module = mpm_prefork
+#  file:
+#    src: /etc/apache2/mods-available/mpm_prefork.load
+#    dest: /etc/apache2/mods-enabled/mpm_prefork.load
+#    state: link
+#  notify: restart apache
+#
+#- name: mpm_prefork.conf
+#  template:
+#    src: mpm_prefork.conf.j2
+#    dest: /etc/apache2/mods-available/mpm_prefork.conf
+#    owner: root
+#    group: root
+#    mode: 0644
+#    backup: yes
+#  notify: restart apache
+#
+#- name: mpm_prefork config symlink
+#  file:
+#    src: /etc/apache2/mods-available/mpm_prefork.conf
+#    dest: /etc/apache2/mods-enabled/mpm_prefork.conf
+#    state: link
+#  notify: restart apache
 
 # prod mode config
 - name: main apache4_prod.conf
@@ -215,6 +215,7 @@
     owner: root
     group: root
     state: link
+    force: yes
   notify: restart apache
 
 - name: apache ports.conf
@@ -251,6 +252,16 @@
   template:
     src: wordpress.virtualhost.include.j2
     dest: /etc/apache2/conf-available/wordpress.virtualhost.include
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart apache
+
+- name: wordpress.directory.include - common wordpress config for <Directory> blocks
+  template:
+    src: wordpress.directory.include.j2
+    dest: /etc/apache2/conf-available/wordpress.directory.include
     owner: root
     group: root
     mode: 0644

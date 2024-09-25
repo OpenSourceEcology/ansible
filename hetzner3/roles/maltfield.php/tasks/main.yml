@@ -3,7 +3,7 @@
   apt:
     update_cache: yes
     pkg:
-      - libapache2-mod-php
+      - php-fpm
       - php-apcu
   notify: restart apache
 
@@ -48,7 +48,7 @@
 - name: install php apache module
   template:
     src: php_8.2.ini.j2
-    dest: /etc/php/8.2/apache2/php.ini
+    dest: /etc/php/8.2/fpm/php.ini
     owner: root
     group: root
     mode: 0644

@@ -2,31 +2,34 @@
 
 ################################################################################
 # File:    security.virtualhost.include
-# Version: 0.1
+# Version: 0.2
 # Purpose: File includes some common security-hardening that's intended to be
 #          Include()d into other vhost files' <VirtualHost> blocks
 # Author:  Michael Altfield <michael@michaelaltfield.net>
 # Created: 2024-09-14
-# Updated: 2024-09-14
+# Updated: 2024-09-24
 ################################################################################
 
 	# don't execute any php files inside uploads directories
 	<LocationMatch "/wp-content/uploads/">
-		php_flag engine off
+		SetHandler !
+		Require all denied
 	</LocationMatch>
 	<LocationMatch "/wp-content/uploads/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
 	</LocationMatch>
 
 	<LocationMatch "/uploadimages/">
-		php_flag engine off
+		SetHandler !
+		Require all denied
 	</LocationMatch>
 	<LocationMatch "/uploadimages/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
 	</LocationMatch>
 
 	<LocationMatch "/images/">
-		php_flag engine off
+		SetHandler !
+		Require all denied
 	</LocationMatch>
 	<LocationMatch "/images/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
@@ -34,7 +37,8 @@
 
 	# don't execute php files in W3 Total Cache's tmp dir
 	<LocationMatch "/wp-content/cache/">
-		php_flag engine off
+		SetHandler !
+		Require all denied
 	</LocationMatch>
 	<LocationMatch "/wp-content/cache/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
