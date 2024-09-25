@@ -27,6 +27,16 @@
     backup: yes
   notify: restart nginx
 
+- name: /etc/nginx/blockuseragents.rules
+  template:
+    src: blockuseragents.rules.j2
+    dest: /etc/nginx/blockuseragents.rules
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify: restart nginx
+
 - name: /etc/nginx/conf.d/secure.include
   template:
     src: secure.include.j2

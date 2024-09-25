@@ -32,6 +32,16 @@
     mode: 0755
   notify: restart varnish
 
+- name: varnish systemd params file
+  template:
+    src: varnish.params.j2
+    dest: /etc/varnish/varnish.params
+    owner: root
+    group: root
+    mode: 0600
+    backup: yes
+  notify: restart varnish
+
 - name: varnish systemd config
   template:
     src: varnish.service.j2
@@ -118,8 +128,8 @@
 
 - name: "varnish conf/purge-key_{{ item }}.vcl"
   shell: |
-    echo "set req.http.X-VC-My-Purge-Key = \"{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}\"" > "/etc/varnish/conf/purge-key_{{ item }}.vcl"
-    chown root:root "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+    echo "set req.http.X-VC-My-Purge-Key = \"{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_lowercase', 'digits'], length=32) }}\";" > "/etc/varnish/conf/purge-key_{{ item }}.vcl"
+    chown vcache:root "/etc/varnish/conf/purge-key_{{ item }}.vcl"
     chmod 0600 "/etc/varnish/conf/purge-key_{{ item }}.vcl"
   args:
     creates: "/etc/varnish/conf/purge-key_{{ item }}.vcl"
