@@ -49,7 +49,34 @@
     state: directory
     mode: 0700
 
-- name: install php apache module
+- name: enable apache proxy (depend)
+  file:
+    src: /etc/apache2/mods-available/proxy.load
+    dest: /etc/apache2/mods-enabled/proxy.load
+    state: link
+  notify:
+    - restart php-fpm
+    - restart apache
+
+- name: enable apache proxy_fcgi (depend)
+  file:
+    src: /etc/apache2/mods-available/proxy_fcgi.load
+    dest: /etc/apache2/mods-enabled/proxy_fcgi.load
+    state: link
+  notify:
+    - restart php-fpm
+    - restart apache
+
+- name: enable apache php-fpm
+  file:
+    src: /etc/apache2/conf-available/php8.2-fpm.conf
+    dest: /etc/apache2/conf-enabled/php8.2-fpm.conf
+    state: link
+  notify:
+    - restart php-fpm
+    - restart apache
+
+- name: configure php.ini
   template:
     src: php_8.2.ini.j2
     dest: /etc/php/8.2/fpm/php.ini

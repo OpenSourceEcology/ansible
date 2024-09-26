@@ -20,25 +20,25 @@
       - ncdu
 
   roles:
-    - dev-sec.ssh-hardening
-    - mikegleasonjr.firewall
-    - maltfield.unattended-upgrades
-    - maltfield.wazuh
-    - maltfield.locale
-    - maltfield.kernel
-    - maltfield.dns
-    - maltfield.postfix
-    - maltfield.backups
-    - maltfield.certbot
-    - maltfield.nginx
-    - maltfield.varnish
+#    - dev-sec.ssh-hardening
+#    - mikegleasonjr.firewall
+#    - maltfield.unattended-upgrades
+#    - maltfield.wazuh
+#    - maltfield.locale
+#    - maltfield.kernel
+#    - maltfield.dns
+#    - maltfield.postfix
+#    - maltfield.backups
+#    - maltfield.certbot
+#    - maltfield.nginx
+#    - maltfield.varnish
     - maltfield.php
-    - maltfield.mariadb
-    - maltfield.apache
-    - maltfield.munin
-    - maltfield.awstats
-    - maltfield.cron
-    - maltfield.logrotate
+#    - maltfield.mariadb
+#    - maltfield.apache
+#    - maltfield.munin
+#    - maltfield.awstats
+#    - maltfield.cron
+#    - maltfield.logrotate
 
   vars:
 
