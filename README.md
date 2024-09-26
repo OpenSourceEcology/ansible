@@ -1,5 +1,9 @@
 # ansible
-Ansible Playbooks for Provisioning of OSE Servers
+Ansible Playbooks for Provisioning of [OSE Servers](https://wiki.opensourceecology.org/wiki/OSE_Server#Provisioning)
+
+For more info, see our wiki:
+
+ * https://wiki.opensourceecology.org/wiki/OSE_Server#Provisioning
 
 # License
 
