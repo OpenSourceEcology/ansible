@@ -76,7 +76,7 @@ sub vcl_recv {
 		# we just include it rather than define it here
 		# * https://stackoverflow.com/questions/78980038/how-to-replace-jinja2-variable-only-when-first-provisioning-file
 		#set req.http.X-VC-My-Purge-Key = "CHANGE_ME";
-		include "../conf/purge-key_seedhome.openbuildinginstitute.org.vcl"
+		include "conf/purge-key_{{item}}.vcl";
 
 		if (req.method == "PURGE") {
 

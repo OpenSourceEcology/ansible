@@ -66,7 +66,7 @@ http {
    # only permit a max of 30 requests per min from each client ip address
    # prevents DOS
 	limit_req_zone $binary_remote_addr zone=one:10m rate=120r/m;
-   limit_req zone=one;
+   limit_req zone=one burst=300 delay=100;
 
 	# set max time to wait between clients writing.
 	# prevents DOS; ie: Slowloris attack
