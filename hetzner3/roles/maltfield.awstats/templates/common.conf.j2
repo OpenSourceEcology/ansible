@@ -2,11 +2,11 @@
 
 ################################################################################
 # File:    common.conf
-# Version: 0.1
+# Version: 0.2
 # Purpose: Common config options to be included in other awstats config files
 # Author:  Michael Altfield <michael@michaelaltfield.net>
 # Created: 2024-09-14
-# Updated: 2024-09-14
+# Updated: 2024-09-28
 ################################################################################
 
 LogFormat=1
@@ -61,5 +61,6 @@ LoadPlugin="hashfiles"
 # Note that geoip6 also does ipv4 addresses..
 #LoadPlugin="geoip GEOIP_STANDARD /usr/share/GeoIP/GeoIP.dat"
 LoadPlugin="geoip6 GEOIP_STANDARD /usr/share/GeoIP/GeoIPv6.dat"
-LoadPlugin="geoip_city_maxmind GEOIP_STANDARD /usr/share/GeoIP/GeoIPCity.dat"
 
+# 2024-09: city data is no longer available in Debian 12
+#LoadPlugin="geoip_city_maxmind GEOIP_STANDARD /usr/share/GeoIP/GeoIPCity.dat"
