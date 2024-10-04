@@ -36,8 +36,8 @@
 #    - maltfield.mariadb
 #    - maltfield.apache
 #    - maltfield.munin
-    - maltfield.awstats
-#    - maltfield.cron
+#    - maltfield.awstats
+    - maltfield.cron
 #    - maltfield.logrotate
 
   vars:

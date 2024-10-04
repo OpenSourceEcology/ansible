@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 SHELL=/bin/bash
 
-0-59/5 * * * * root sleep $(( RANDOM \% 60 )) && su -s /bin/sh www-data -c "time /usr/bin/php /var/www/html/phplist.opensourceecology.org/public_html/lists/admin/index.php -c /var/www/html/phplist.opensourceecology.org/config.php -pprocessqueue &>> /var/log/phplist/processQueue.log"
+0-59/5 * * * * root sleep $(( RANDOM \% 60 )) && su -s /bin/bash www-data -c "time /usr/bin/php /var/www/html/phplist.opensourceecology.org/public_html/lists/admin/index.php -c /var/www/html/phplist.opensourceecology.org/config.php -pprocessqueue &>> /var/log/phplist/processQueue.log"
 
-20 4 * * * root sleep $(( RANDOM \% 60 )) && su -s /bin/sh www-data -c "time /usr/bin/php /var/www/html/phplist.opensourceecology.org/public_html/lists/admin/index.php -c /var/www/html/phplist.opensourceecology.org/config.php -pprocessbounces &>> /var/log/phplist/processBounces.log"
+20 4 * * * root sleep $(( RANDOM \% 60 )) && su -s /bin/bash www-data -c "time /usr/bin/php /var/www/html/phplist.opensourceecology.org/public_html/lists/admin/index.php -c /var/www/html/phplist.opensourceecology.org/config.php -pprocessbounces &>> /var/log/phplist/processBounces.log"
