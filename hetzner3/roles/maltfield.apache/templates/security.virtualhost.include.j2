@@ -2,18 +2,17 @@
 
 ################################################################################
 # File:    security.virtualhost.include
-# Version: 0.2
+# Version: 0.3
 # Purpose: File includes some common security-hardening that's intended to be
 #          Include()d into other vhost files' <VirtualHost> blocks
 # Author:  Michael Altfield <michael@michaelaltfield.net>
 # Created: 2024-09-14
-# Updated: 2024-09-24
+# Updated: 2024-10-06
 ################################################################################
 
 	# don't execute any php files inside uploads directories
 	<LocationMatch "/wp-content/uploads/">
 		SetHandler !
-		Require all denied
 	</LocationMatch>
 	<LocationMatch "/wp-content/uploads/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
@@ -21,7 +20,6 @@
 
 	<LocationMatch "/uploadimages/">
 		SetHandler !
-		Require all denied
 	</LocationMatch>
 	<LocationMatch "/uploadimages/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
@@ -29,7 +27,6 @@
 
 	<LocationMatch "/images/">
 		SetHandler !
-		Require all denied
 	</LocationMatch>
 	<LocationMatch "/images/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
@@ -38,7 +35,6 @@
 	# don't execute php files in W3 Total Cache's tmp dir
 	<LocationMatch "/wp-content/cache/">
 		SetHandler !
-		Require all denied
 	</LocationMatch>
 	<LocationMatch "/wp-content/cache/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
@@ -46,17 +42,22 @@
 
 	# block dot (hidden) files
 	<LocationMatch "/\.(?!well\-known)">
+		SetHandler !
 		Require all denied
 	</LocationMatch>
 
 	# block config files
 	<LocationMatch "config.php">
+		SetHandler !
 		Require all denied
 	</LocationMatch>
 
    # block access to 'wp-login.php' from brute-forcers;
 	# see wp plugin 'rename-wp-login'
-   <LocationMatch ".*wp-login.php">
-		Require all denied
-   </LocationMatch>
+	# TODO: 2024-10: we need to re-enable this after we find a replacement for the
+	#                (now-deprecated) 'rename-wp-login' wordpress plugin
+	#               * https://wordpress.org/plugins/rename-wp-login/
+#   <LocationMatch ".*wp-login.php">
+#		Require all denied
+#   </LocationMatch>
 
