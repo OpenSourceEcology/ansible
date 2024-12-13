@@ -202,14 +202,3 @@
     dest: /etc/munin/plugins/proc
     state: link
   notify: restart munin
-
-- name: mariadb plugins config
-  template:
-    src: zzz-myconf.j2
-    dest: /etc/munin/plugin-conf.d/zzz-myconf
-    owner: root
-    group: root
-    mode: 0644
-    backup: yes
-  notify: restart munin
-
