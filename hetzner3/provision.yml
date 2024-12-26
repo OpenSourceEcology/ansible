@@ -31,8 +31,8 @@
 #    - maltfield.backups
 #    - maltfield.certbot
     - maltfield.nginx
-#    - maltfield.varnish
-    - maltfield.php
+    - maltfield.varnish
+#    - maltfield.php
 #    - maltfield.mariadb
     - maltfield.apache
 #    - maltfield.munin
@@ -149,7 +149,7 @@
     virtual_hosts:
       - forum.opensourceecology.org
       - store.opensourceecology.org
-#      - microfactory.opensourceecology.org
+      - microfactory.opensourceecology.org
 #      - fef.opensourceecology.org
 #      - oswh.opensourceecology.org
 #      - seedhome.openbuildinginstitute.org
