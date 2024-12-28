@@ -19,8 +19,10 @@ server {
    include conf.d/secure.include;
    include conf.d/https.opensourceecology.org.include;
 
-   listen {{ ansible_default_ipv4.address }}:4444;
-   listen [{{ ansible_default_ipv6.address }}]:4444;
+   listen 127.0.0.1:443;
+   listen [::1]:443;
+   listen {{ ansible_default_ipv4.address }}:443;
+   listen [{{ ansible_default_ipv6.address }}]:443;
 
    server_name wiki.opensourceecology.org;
 

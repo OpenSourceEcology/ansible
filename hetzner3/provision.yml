@@ -156,7 +156,7 @@
 #      - www.openbuildinginstitute.org
 #      - www.opensourceecology.org
 #      - phplist.opensourceecology.org
-#      - wiki.opensourceecology.org
+      - wiki.opensourceecology.org
 
 #    default_vhost: 'www.opensourceecology.org'
     default_vhost: 'forum.opensourceecology.org'
