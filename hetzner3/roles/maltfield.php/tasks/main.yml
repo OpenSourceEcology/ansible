@@ -16,6 +16,7 @@
       - php-gd
       - php-mysql
       - php-tideways
+      - php-mbstring
   notify:
     - restart php-fpm
 
