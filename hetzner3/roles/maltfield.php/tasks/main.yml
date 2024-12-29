@@ -17,6 +17,7 @@
       - php-mysql
       - php-tideways
       - php-mbstring
+      - php-intl
   notify:
     - restart php-fpm
 
