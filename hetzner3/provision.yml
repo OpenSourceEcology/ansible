@@ -20,25 +20,25 @@
       - ncdu
 
   roles:
-#    - dev-sec.ssh-hardening
-#    - mikegleasonjr.firewall
-#    - maltfield.unattended-upgrades
-#    - maltfield.wazuh
-#    - maltfield.locale
-#    - maltfield.kernel
-#    - maltfield.dns
-#    - maltfield.postfix
-#    - maltfield.backups
-#    - maltfield.certbot
+    - dev-sec.ssh-hardening
+    - mikegleasonjr.firewall
+    - maltfield.unattended-upgrades
+    - maltfield.wazuh
+    - maltfield.locale
+    - maltfield.kernel
+    - maltfield.dns
+    - maltfield.postfix
+    - maltfield.backups
+    - maltfield.certbot
     - maltfield.nginx
     - maltfield.varnish
-#    - maltfield.php
-#    - maltfield.mariadb
+    - maltfield.php
+    - maltfield.mariadb
     - maltfield.apache
-#    - maltfield.munin
-#    - maltfield.awstats
-#    - maltfield.cron
-#    - maltfield.logrotate
+    - maltfield.munin
+    - maltfield.awstats
+    - maltfield.cron
+    - maltfield.logrotate
 
   vars:
 
@@ -153,7 +153,7 @@
       - fef.opensourceecology.org
       - oswh.opensourceecology.org
       - seedhome.openbuildinginstitute.org
-#      - www.openbuildinginstitute.org
+      - www.openbuildinginstitute.org
 #      - www.opensourceecology.org
 #      - phplist.opensourceecology.org
       - wiki.opensourceecology.org
