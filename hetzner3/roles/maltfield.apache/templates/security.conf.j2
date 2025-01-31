@@ -100,7 +100,7 @@ FileETag None
 TraceEnable off
 Header set X-XSS-Protection "1; mode=block"
 Header always edit Set-Cookie (.*) "$1;HttpOnly;Secure"
-Header set X-Frame-Options "deny"
+Header set X-Frame-Options "SAMEORIGIN"
 Header set Referrer-Policy "strict-origin"
 
 # TODO: enable this one day if I can eliminate all inline CSS & JS

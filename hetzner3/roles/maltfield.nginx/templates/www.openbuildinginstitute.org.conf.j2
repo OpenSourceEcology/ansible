@@ -65,7 +65,14 @@ server {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header Host $host;
-   }
+
+		# handle cors whitelist for naked domain
+		proxy_hide_header Access-Control-Allow-Origin;
+		if ( $http_origin ~ "^https://(www.openbuildinginstitue.org|openbuildinginstitute.org)$" ) {
+			add_header Access-Control-Allow-Origin $http_origin;
+		}
+
+	}
 
 }
 
