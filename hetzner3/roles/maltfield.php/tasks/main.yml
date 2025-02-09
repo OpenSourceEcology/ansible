@@ -43,6 +43,14 @@
     state: directory
     mode: 0700
 
+- name: php tmp upload dir
+  file:
+    dest: /var/lib/php/tmp_upload
+    owner: www-data
+    group: root
+    state: directory
+    mode: 0700
+
 - name: php wsdl soap cache dir
   file:
     dest: /var/lib/php/soap_cache
