@@ -5,6 +5,7 @@
     pkg:
       - php-fpm
       - php-apcu
+      - php-curl
   notify:
     - restart php-fpm
 
