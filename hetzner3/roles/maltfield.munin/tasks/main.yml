@@ -39,12 +39,12 @@
     state: link
   notify: restart munin
 
-- name: munin mysql_isam_space_ plugin
-  file:
-    src: /usr/share/munin/plugins/mysql_isam_space_
-    dest: /etc/munin/plugins/mysql_isam_space_
-    state: link
-  notify: restart munin
+#- name: munin mysql_isam_space_ plugin
+#  file:
+#    src: /usr/share/munin/plugins/mysql_isam_space_
+#    dest: /etc/munin/plugins/mysql_isam_space_
+#    state: link
+#  notify: restart munin
 
 - name: munin mysql_queries plugin
   file:
