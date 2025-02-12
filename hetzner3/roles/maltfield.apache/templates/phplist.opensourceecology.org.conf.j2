@@ -26,6 +26,9 @@
 
 	<Directory "/var/www/html/phplist.opensourceecology.org/public_html">
 		Include 'conf-available/security.directory.include'
+
+		# phpList requires us to explicitly set this order
+		DirectoryIndex index.php index.html
 	</Directory>
 
 	Include 'conf-available/phplist.virtualhost.include'
