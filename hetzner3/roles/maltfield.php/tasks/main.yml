@@ -36,6 +36,14 @@
   notify:
     - restart php-fpm
 
+- name: install MediaWiki deps (for FancyCaptcha)
+  apt:
+    update_cache: yes
+    pkg:
+      - fonts-dejavu-core
+      - wamerican
+      - python3-pil
+
 - name: php tmp dir
   file:
     dest: /var/lib/php/tmp
