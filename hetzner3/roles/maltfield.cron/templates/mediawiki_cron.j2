@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+SHELL=/bin/bash
+
+# regenerate new CAPTCHA images
+20 4 * * * www-data sleep $(( RANDOM \% 3600 )) && /usr/local/bin/mediawiki_generate_captchas.sh &> /var/log/cron/mediawiki_generate_captchas.log

@@ -6,9 +6,25 @@
     group: root
     mode: 0644
 
+- name: mediawiki cron
+  template:
+    src: mediawiki_cron.j2
+    dest: /etc/cron.d/mediawiki_cron
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Create log dir for phplist cron
   file:
     dest: /var/log/phplist
+    owner: www-data
+    group: www-data
+    state: directory
+    mode: 0750
+
+- name: Create log dir for various custom crons
+  file:
+    dest: /var/log/cron
     owner: www-data
     group: www-data
     state: directory
