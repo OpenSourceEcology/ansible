@@ -2,4 +2,4 @@
 SHELL=/bin/bash
 
 # regenerate new CAPTCHA images
-20 4 * * * root sleep $(( RANDOM \% 3600 )) && /usr/local/bin/mediawiki_generate_captchas.sh &> /var/log/cron/mediawiki_generate_captchas.log
+20 4 * * * root sleep $(( RANDOM \% 3600 )) && /usr/local/bin/mediawiki_generate_captchas.sh &>> /var/log/cron/mediawiki_generate_captchas.log
