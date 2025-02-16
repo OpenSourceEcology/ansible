@@ -140,29 +140,54 @@
   notify: restart apache
 
 # we're using mpm_event, the default in Debian 12 with Apache 2.4
-#- name: enable module = mpm_prefork
-#  file:
-#    src: /etc/apache2/mods-available/mpm_prefork.load
-#    dest: /etc/apache2/mods-enabled/mpm_prefork.load
-#    state: link
-#  notify: restart apache
-#
-#- name: mpm_prefork.conf
-#  template:
-#    src: mpm_prefork.conf.j2
-#    dest: /etc/apache2/mods-available/mpm_prefork.conf
-#    owner: root
-#    group: root
-#    mode: 0644
-#    backup: yes
-#  notify: restart apache
-#
-#- name: mpm_prefork config symlink
-#  file:
-#    src: /etc/apache2/mods-available/mpm_prefork.conf
-#    dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-#    state: link
-#  notify: restart apache
+# * https://www.mediawiki.org/wiki/Manual:Performance_tuning#Web_server
+- name: disable module = mpm_prefork
+  file:
+    path: /etc/apache2/mods-enabled/mpm_prefork.load
+    state: absent
+  notify: restart apache
+
+- name: mpm_prefork config symlink
+  file:
+    path: /etc/apache2/mods-enabled/mpm_prefork.conf
+    state: absent
+  notify: restart apache
+
+- name: enable module = mpm_event
+  file:
+    src: /etc/apache2/mods-available/mpm_event.load
+    dest: /etc/apache2/mods-enabled/mpm_event.load
+    state: link
+  notify: restart apache
+
+- name: mpm_event config symlink
+  file:
+    src: /etc/apache2/mods-available/mpm_event.conf
+    dest: /etc/apache2/mods-enabled/mpm_event.conf
+    state: link
+  notify: restart apache
+
+# disable mod_php (we use php-fpm via SetHandler "proxy:unix...") instead
+# * https://www.mediawiki.org/wiki/Manual:Performance_tuning#Web_server
+
+- name: disable mod_php
+  file:
+    path: /etc/apache2/mods-enabled/php8.2.load
+    state: absent
+  notify: restart apache
+
+- name: disable mod_php conf
+  file:
+    path: /etc/apache2/mods-enabled/php8.2.conf
+    state: absent
+  notify: restart apache
+
+- name: enable php-fpm
+  file:
+    src: /etc/apache2/conf-available/php8.2-fpm.conf
+    dest: /etc/apache2/conf-enabled/php8.2-fpm.conf
+    state: link
+  notify: restart apache
 
 # prod mode config
 - name: main apache4_prod.conf

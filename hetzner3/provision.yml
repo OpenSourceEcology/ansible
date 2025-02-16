@@ -21,7 +21,7 @@
 
   roles:
 #    - dev-sec.ssh-hardening
-    - mikegleasonjr.firewall
+#    - mikegleasonjr.firewall
 #    - maltfield.unattended-upgrades
 #    - maltfield.wazuh
 #    - maltfield.locale
@@ -32,12 +32,12 @@
 #    - maltfield.certbot
 #    - maltfield.nginx
 #    - maltfield.varnish
-#    - maltfield.php
+    - maltfield.php
 #    - maltfield.mariadb
-#    - maltfield.apache
+    - maltfield.apache
 #    - maltfield.munin
 #    - maltfield.awstats
-    - maltfield.cron
+#    - maltfield.cron
 #    - maltfield.logrotate
 
   vars:
