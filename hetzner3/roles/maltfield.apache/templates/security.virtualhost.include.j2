@@ -52,12 +52,11 @@
 		Require all denied
 	</LocationMatch>
 
-   # block access to 'wp-login.php' from brute-forcers;
-	# see wp plugin 'rename-wp-login'
-	# TODO: 2024-10: we need to re-enable this after we find a replacement for the
-	#                (now-deprecated) 'rename-wp-login' wordpress plugin
-	#               * https://wordpress.org/plugins/rename-wp-login/
-#   <LocationMatch ".*wp-login.php">
-#		Require all denied
-#   </LocationMatch>
+   # block access to 'wp-login.php' from brute-forcers
+	# Note that we use the wordpress plugin 'melapress-login-security' to change
+	# the actual URL for logging-in
+	# * https://wiki.opensourceecology.org/wiki/Wordpress#MelaPress_Login_Security
+   <LocationMatch ".*wp-login.php">
+		Require all denied
+   </LocationMatch>
 
