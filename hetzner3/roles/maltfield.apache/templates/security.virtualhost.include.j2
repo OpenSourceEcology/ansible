@@ -2,12 +2,12 @@
 
 ################################################################################
 # File:    security.virtualhost.include
-# Version: 0.3
+# Version: 0.4
 # Purpose: File includes some common security-hardening that's intended to be
 #          Include()d into other vhost files' <VirtualHost> blocks
 # Author:  Michael Altfield <michael@michaelaltfield.net>
 # Created: 2024-09-14
-# Updated: 2024-10-06
+# Updated: 2025-02-16
 ################################################################################
 
 	# don't execute any php files inside uploads directories
@@ -15,6 +15,13 @@
 		SetHandler !
 	</LocationMatch>
 	<LocationMatch "/wp-content/uploads/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
+		Require all denied
+	</LocationMatch>
+
+	<LocationMatch "/wp-content/tmp/">
+		SetHandler !
+	</LocationMatch>
+	<LocationMatch "/wp-content/tmp/.*(?i)\.(cgi|shtml|php3?|phps|phtml)$">
 		Require all denied
 	</LocationMatch>
 
