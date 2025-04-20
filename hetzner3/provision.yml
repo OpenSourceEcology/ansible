@@ -30,12 +30,12 @@
 #    - maltfield.postfix
 #    - maltfield.backups
 #    - maltfield.certbot
-    - maltfield.nginx
+#    - maltfield.nginx
 #    - maltfield.varnish
-    - maltfield.php
+#    - maltfield.php
 #    - maltfield.mariadb
-    - maltfield.apache
-#    - maltfield.munin
+#    - maltfield.apache
+    - maltfield.munin
 #    - maltfield.awstats
 #    - maltfield.cron
 #    - maltfield.logrotate

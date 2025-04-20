@@ -202,3 +202,17 @@
     dest: /etc/munin/plugins/proc
     state: link
   notify: restart munin
+
+- name: munin smart_ plugin for disk 1
+  file:
+    src: /usr/share/munin/plugins/smart_
+    dest: /etc/munin/plugins/smart_nvme0n1
+    state: link
+  notify: restart munin
+
+- name: munin smart_ plugin for disk 2
+  file:
+    src: /usr/share/munin/plugins/smart_
+    dest: /etc/munin/plugins/smart_nvme1n1
+    state: link
+  notify: restart munin

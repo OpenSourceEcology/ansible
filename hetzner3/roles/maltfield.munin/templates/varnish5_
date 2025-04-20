@@ -1,7 +1,6 @@
-# {{ ansible_managed }}
-
 #!/usr/bin/perl
 # -*- perl -*-
+# {{ ansible_managed }}
 #
 # varnish5_ - Munin plugin to for Varnish 5.x and 6.x
 # Copyright (C) 2009,2018  Redpill Linpro AS
