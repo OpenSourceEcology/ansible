@@ -825,3 +825,6 @@ smtpd_client_event_limit_exceptions = $mynetworks
 smtpd_error_sleep_time = 4s
 smtpd_soft_error_limit = 4
 smtpd_hard_error_limit = 10
+
+# limit emails to the same-destination-domain to one-email-per-2-seconds
+default_destination_rate_delay = 2s

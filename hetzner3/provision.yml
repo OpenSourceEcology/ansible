@@ -27,7 +27,7 @@
 #    - maltfield.locale
 #    - maltfield.kernel
 #    - maltfield.dns
-#    - maltfield.postfix
+    - maltfield.postfix
 #    - maltfield.backups
 #    - maltfield.certbot
 #    - maltfield.nginx
@@ -35,7 +35,7 @@
 #    - maltfield.php
 #    - maltfield.mariadb
 #    - maltfield.apache
-    - maltfield.munin
+#    - maltfield.munin
 #    - maltfield.awstats
 #    - maltfield.cron
 #    - maltfield.logrotate
