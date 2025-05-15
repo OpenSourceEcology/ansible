@@ -24,10 +24,10 @@
 #    - mikegleasonjr.firewall
 #    - maltfield.unattended-upgrades
 #    - maltfield.wazuh
-#    - maltfield.locale
+    - maltfield.locale
 #    - maltfield.kernel
 #    - maltfield.dns
-    - maltfield.postfix
+#    - maltfield.postfix
 #    - maltfield.backups
 #    - maltfield.certbot
 #    - maltfield.nginx
